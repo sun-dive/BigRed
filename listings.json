@@ -1,13 +1,13 @@
 {
-  "sitePubKey": "PASTE_SITE_PUBLIC_KEY_HERE",
+  "sitePubKey": "0225223658d4a5f9f24c4d14985c448ba94dc1cadec9b22448b9c2f7db141d97b8",
   "affRefCode": "",
   "listings": [
     {
-      "collectionId": "REPLACE_WITH_COLLECTION_TX1_ID",
-      "title": "Example listing — replace me",
-      "description": "Short blurb shown on the card. Delete this example once you add real listings.",
-      "priceSats": 6000,
-      "cover": "covers/example.jpg"
+      "collectionId": "c9c16391bf1804f8ac069985edba0e354519ebebbf0192cb5cc13fb811c61baa",
+      "title": "Test listing — edit me",
+      "description": "",
+      "priceSats": null,
+      "cover": ""
     }
   ]
 }
