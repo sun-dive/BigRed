@@ -1,0 +1,18 @@
+---
+# cPanel Git™ Version Control deployment for Big Red (nft.sale) — mirrors the smartnfts.com setup.
+#
+# In cPanel → Git Version Control: clone this repo (branch main), then "Update from Remote" +
+# "Deploy HEAD Commit". cPanel runs the tasks below to copy the static site into nft.sale's web root.
+#
+# DEPLOYPATH = the nft.sale document root, relative to the cPanel user's $HOME (set at deploy time, so
+# the username never lands in the repo). An addon domain's Document Root usually shows as "/nft.sale"
+# → $HOME/nft.sale. Confirm yours in cPanel → Domains and adjust the path below if it differs.
+deployment:
+  tasks:
+    - export DEPLOYPATH="$HOME/nft.sale/"
+    - /bin/cp index.html "$DEPLOYPATH"
+    - /bin/cp style.css "$DEPLOYPATH"
+    - /bin/cp app.js "$DEPLOYPATH"
+    - /bin/cp listings.json "$DEPLOYPATH"
+    - /bin/cp .htaccess "$DEPLOYPATH"
+    - /bin/cp -R covers "$DEPLOYPATH"
