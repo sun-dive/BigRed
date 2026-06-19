@@ -1,0 +1,13 @@
+{
+  "sitePubKey": "PASTE_SITE_PUBLIC_KEY_HERE",
+  "affRefCode": "",
+  "listings": [
+    {
+      "collectionId": "REPLACE_WITH_COLLECTION_TX1_ID",
+      "title": "Example listing — replace me",
+      "description": "Short blurb shown on the card. Delete this example once you add real listings.",
+      "priceSats": 6000,
+      "cover": "covers/example.jpg"
+    }
+  ]
+}
