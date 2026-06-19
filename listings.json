@@ -4,10 +4,10 @@
   "listings": [
     {
       "collectionId": "c9c16391bf1804f8ac069985edba0e354519ebebbf0192cb5cc13fb811c61baa",
-      "title": "Test listing — edit me",
-      "description": "",
-      "priceSats": null,
-      "cover": ""
+      "title": "Phar Lap app as on June 17 2026",
+      "description": "This is a zip file of the current html page and bundle.js for the Phar Lap app.",
+      "priceSats": 2,
+      "cover": "covers/c9c16391bf1804f8ac069985edba0e354519ebebbf0192cb5cc13fb811c61baa.jpg"
     }
   ]
 }
