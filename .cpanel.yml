@@ -13,6 +13,8 @@ deployment:
     - /bin/cp index.html "$DEPLOYPATH"
     - /bin/cp style.css "$DEPLOYPATH"
     - /bin/cp app.js "$DEPLOYPATH"
-    - /bin/cp listings.json "$DEPLOYPATH"
     - /bin/cp .htaccess "$DEPLOYPATH"
-    - /bin/cp -R covers "$DEPLOYPATH"
+    # listings.json + covers/ are owned by the server-side curation cron, which writes them straight into the
+    # web root on a schedule. Seed them on a FRESH deploy only — never overwrite the cron's live catalog.
+    - '[ -f "$DEPLOYPATH/listings.json" ] || /bin/cp listings.json "$DEPLOYPATH"'
+    - '[ -d "$DEPLOYPATH/covers" ] || /bin/cp -R covers "$DEPLOYPATH"'
