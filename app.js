@@ -43,6 +43,22 @@ async function load () {
     grid.innerHTML = '<p class="empty">Set <code>sitePubKey</code> in <code>listings.json</code> (the site’s cold public key), then add listings.</p>'
     return
   }
+
+  // "Sell here" — a deep link that opens the wallet ready to onboard a copy to this site, plus the raw pubkey.
+  const sell = document.getElementById('sell')
+  if (sell) {
+    document.getElementById('sellLink').href = SMARTNFTS + '/#list=' + encodeURIComponent(data.sitePubKey)
+    document.getElementById('sellPub').textContent = data.sitePubKey
+    const copyBtn = document.getElementById('sellCopy')
+    copyBtn.onclick = async () => {
+      try {
+        await navigator.clipboard.writeText(data.sitePubKey)
+        const o = copyBtn.textContent; copyBtn.textContent = '✓ Copied'; setTimeout(() => { copyBtn.textContent = o }, 1500)
+      } catch { window.prompt('Copy this address:', data.sitePubKey) }
+    }
+    sell.hidden = false
+  }
+
   const items = Array.isArray(data.listings) ? data.listings : []
   if (items.length === 0) { grid.innerHTML = '<p class="empty">No listings yet — add entries to <code>listings.json</code>.</p>'; return }
 

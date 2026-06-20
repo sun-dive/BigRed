@@ -54,6 +54,24 @@ main { max-width: 1080px; margin: 0 auto; padding: 0 16px 48px; }
 .card .copylink:hover { border-color: var(--accent); color: var(--fg); }
 .card .copylink.ok { color: #3fb950; border-color: #3fb950; }
 
+.sell {
+  max-width: 720px; margin: 32px auto 8px; padding: 22px 18px; text-align: center;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+}
+.sell h2 { margin: 0 0 6px; font-size: 18px; }
+.sell p { margin: 0 auto; color: var(--muted); font-size: 14px; max-width: 52ch; }
+.sell-cta {
+  display: inline-block; margin: 14px 0 4px; background: var(--accent); color: #06122a;
+  font-weight: 600; font-size: 14px; padding: 10px 18px; border-radius: 10px;
+}
+.sell-key { font-size: 12px !important; margin-top: 12px !important; }
+.sell-key code { word-break: break-all; color: var(--fg); font-size: 11px; }
+.sell-copy {
+  background: transparent; color: var(--muted); border: 1px solid var(--line);
+  border-radius: 6px; padding: 2px 8px; font-size: 11px; cursor: pointer; margin-left: 4px;
+}
+.sell-copy:hover { border-color: var(--accent); color: var(--fg); }
+
 .site-foot { text-align: center; color: var(--muted); font-size: 13px; padding: 24px 16px 48px; border-top: 1px solid var(--line); }
 .site-foot p { margin: 4px 0; }
 .site-foot .flavour { font-size: 12px; opacity: 0.8; }
