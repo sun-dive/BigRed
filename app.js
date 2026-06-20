@@ -74,7 +74,13 @@ function render (data, activeTag) {
   grid.innerHTML = ''
   for (const it of items) {
     const link = listingLink(it.collectionId, data.sitePubKey, data.affRefCode)
-    const price = it.priceSats != null ? `${Number(it.priceSats).toLocaleString()} sats` : ''
+    // Real cost to a buyer = the covenant fees + the refundable bond locked into their own copy, + network fee.
+    const fees = Number(it.priceSats || 0)
+    const bond = Number(it.bondSats || 0)
+    const sub = (bond > 1 ? `incl. ${bond.toLocaleString()} refundable bond · ` : '') + '+ network fee'
+    const priceHtml = it.priceSats != null
+      ? `<span class="price">${(fees + bond).toLocaleString()} sats<span class="sub">${sub}</span></span>`
+      : '<span></span>'
     const tags = (it.tags || []).map(t => `<button class="tag" data-tag="${escapeHtml(t)}">#${escapeHtml(t)}</button>`).join('')
     const card = document.createElement('article')
     card.className = 'card'
@@ -87,7 +93,7 @@ function render (data, activeTag) {
         (it.description ? `<p class="desc">${escapeHtml(it.description)}</p>` : '') +
         (tags ? `<div class="tags">${tags}</div>` : '') +
         `<div class="row">` +
-          (price ? `<span class="price">${price}<span class="sub"> + network fee</span></span>` : '<span></span>') +
+          priceHtml +
           `<a class="buy" href="${link}" target="_blank" rel="noopener">Get a copy ↗</a>` +
         `</div>` +
       `</div>`

@@ -7,6 +7,7 @@
       "title": "PharLap bonded-burn covenant - test-01",
       "description": "Recipient can replicate and or burn their token to recover the bond.",
       "priceSats": 4200,
+      "bondSats": 1,
       "tags": [],
       "cover": "covers/0f8d45def474654b43410b121a6d7d8c79d955ca722278e5c04dd5157082ba0b.webp"
     },
@@ -15,6 +16,7 @@
       "title": "Phar Lap app as on June 17 2026",
       "description": "This is a zip file of the current html page and bundle.js for the Phar Lap app.",
       "priceSats": 2,
+      "bondSats": 1,
       "tags": [
         "software",
         "phar-lap"
@@ -26,6 +28,7 @@
       "title": "Bitcoin White Paper",
       "description": "Bitcoin: A Peer-to-Peer Electronic Cash System by Satoshi Nakamoto\n\nThe original Bitcoin whitepaper was first published by Satoshi Nakamoto on October 31st, 2008.\n\nNow stored immutably on the Bitcoin blockchain as a smart NFT.",
       "priceSats": 1100,
+      "bondSats": 1000,
       "tags": [
         "bitcoin",
         "bitcoin-white-paper",
@@ -47,7 +50,8 @@
         "money",
         "bonded-burn"
       ],
-      "cover": "covers/6a51737ef3ac315a6ba5e70e117536cee0cd33edd118901932cf185a679837f0.webp"
+      "cover": "covers/6a51737ef3ac315a6ba5e70e117536cee0cd33edd118901932cf185a679837f0.webp",
+      "bondSats": 0
     }
   ]
 }
