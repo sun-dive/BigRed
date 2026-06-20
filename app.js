@@ -46,10 +46,36 @@ async function load () {
   const items = Array.isArray(data.listings) ? data.listings : []
   if (items.length === 0) { grid.innerHTML = '<p class="empty">No listings yet — add entries to <code>listings.json</code>.</p>'; return }
 
+  render(data, null) // null = no tag filter (show all)
+}
+
+/** All distinct tags across listings (sorted) — drives the filter bar. */
+function allTags (data) {
+  return [...new Set((data.listings || []).flatMap(it => it.tags || []))].sort()
+}
+
+/** Render the category filter chips (All + one per tag). Hidden when no listing has tags. */
+function renderFilters (data, activeTag) {
+  const bar = document.getElementById('filters')
+  if (bar == null) return
+  const tags = allTags(data)
+  if (tags.length === 0) { bar.innerHTML = ''; return }
+  const chip = (label, tag) => `<button class="chip${tag === activeTag ? ' active' : ''}" data-tag="${escapeHtml(tag ?? '')}">${escapeHtml(label)}</button>`
+  bar.innerHTML = chip('All', null) + tags.map(t => chip('#' + t, t)).join('')
+  bar.querySelectorAll('.chip').forEach(b => { b.onclick = () => render(data, b.dataset.tag || null) })
+}
+
+/** Render the catalog, optionally filtered to a single tag. */
+function render (data, activeTag) {
+  renderFilters(data, activeTag)
+  const grid = document.getElementById('grid')
+  const items = (data.listings || []).filter(it => activeTag == null || (it.tags || []).includes(activeTag))
+  if (items.length === 0) { grid.innerHTML = '<p class="empty">Nothing in that category yet.</p>'; return }
   grid.innerHTML = ''
   for (const it of items) {
     const link = listingLink(it.collectionId, data.sitePubKey, data.affRefCode)
     const price = it.priceSats != null ? `${Number(it.priceSats).toLocaleString()} sats` : ''
+    const tags = (it.tags || []).map(t => `<button class="tag" data-tag="${escapeHtml(t)}">#${escapeHtml(t)}</button>`).join('')
     const card = document.createElement('article')
     card.className = 'card'
     card.innerHTML =
@@ -59,6 +85,7 @@ async function load () {
       `<div class="body">` +
         `<h2>${escapeHtml(it.title || 'Untitled')}</h2>` +
         (it.description ? `<p class="desc">${escapeHtml(it.description)}</p>` : '') +
+        (tags ? `<div class="tags">${tags}</div>` : '') +
         `<div class="row">` +
           (price ? `<span class="price">${price}<span class="sub"> + network fee</span></span>` : '<span></span>') +
           `<a class="buy" href="${link}" target="_blank" rel="noopener">Get a copy ↗</a>` +
@@ -66,6 +93,7 @@ async function load () {
       `</div>`
     grid.appendChild(card)
   }
+  grid.querySelectorAll('.tag').forEach(b => { b.onclick = () => render(data, b.dataset.tag) }) // tap a card's tag to filter
 }
 
 load()
