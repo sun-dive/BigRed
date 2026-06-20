@@ -31,6 +31,14 @@ async function load () {
     return
   }
 
+  // "New to BSV?" fund-up link — Orange Gateway signup carrying the site's referral code, so unfunded
+  // visitors can get a little BSV (and the site earns the signup referral).
+  const fund = document.getElementById('fund')
+  if (fund != null && data.affRefCode) {
+    fund.querySelector('a').href = 'https://exchange.orangegateway.com/signup?ref-code=' + encodeURIComponent(data.affRefCode)
+    fund.hidden = false
+  }
+
   if (!data.sitePubKey || /^PASTE/i.test(data.sitePubKey)) {
     grid.innerHTML = '<p class="empty">Set <code>sitePubKey</code> in <code>listings.json</code> (the site’s cold public key), then add listings.</p>'
     return

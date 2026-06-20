@@ -11,6 +11,8 @@ a { color: var(--accent); text-decoration: none; }
 .site-head { text-align: center; padding: 40px 16px 24px; }
 .brand { margin: 0; font-size: 28px; letter-spacing: -0.3px; }
 .tagline { margin: 6px 0 0; color: var(--muted); }
+.howto { margin: 10px 0 0; color: var(--muted); font-size: 13px; }
+.fund { margin: 8px 0 0; font-size: 13px; }
 
 main { max-width: 1080px; margin: 0 auto; padding: 0 16px 48px; }
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
