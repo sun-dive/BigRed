@@ -9,6 +9,14 @@
       "priceSats": 2,
       "tags": ["software", "phar-lap"],
       "cover": "covers/c9c16391bf1804f8ac069985edba0e354519ebebbf0192cb5cc13fb811c61baa.jpg"
+    },
+    {
+      "collectionId": "6a51737ef3ac315a6ba5e70e117536cee0cd33edd118901932cf185a679837f0",
+      "title": "PharLap Bonded-Burn covenant - test-02",
+      "description": "PharLap token Bonded-Burn covenant script - miner enforced - test-02",
+      "priceSats": 2000,
+      "tags": ["covenant", "phar-lap", "test"],
+      "cover": "covers/6a51737ef3ac315a6ba5e70e117536cee0cd33edd118901932cf185a679837f0.webp"
     }
   ]
 }
