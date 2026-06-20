@@ -3,11 +3,22 @@
   "affRefCode": "13a59b79-e805-4a01-a2f6-4eb3e936d8cd",
   "listings": [
     {
+      "collectionId": "0f8d45def474654b43410b121a6d7d8c79d955ca722278e5c04dd5157082ba0b",
+      "title": "PharLap bonded-burn covenant - test-01",
+      "description": "Recipient can replicate and or burn their token to recover the bond.",
+      "priceSats": 4200,
+      "tags": [],
+      "cover": "covers/0f8d45def474654b43410b121a6d7d8c79d955ca722278e5c04dd5157082ba0b.webp"
+    },
+    {
       "collectionId": "c9c16391bf1804f8ac069985edba0e354519ebebbf0192cb5cc13fb811c61baa",
       "title": "Phar Lap app as on June 17 2026",
       "description": "This is a zip file of the current html page and bundle.js for the Phar Lap app.",
       "priceSats": 2,
-      "tags": ["software", "phar-lap"],
+      "tags": [
+        "software",
+        "phar-lap"
+      ],
       "cover": "covers/c9c16391bf1804f8ac069985edba0e354519ebebbf0192cb5cc13fb811c61baa.jpg"
     },
     {
@@ -15,7 +26,12 @@
       "title": "Bitcoin Bonded Burn Covenant Tokens",
       "description": "Grab this PharLap Bonded-Burn covenant - test-02 and get ready to roll.",
       "priceSats": 2000,
-      "tags": ["bitcoin", "2018", "money", "bonded-burn"],
+      "tags": [
+        "bitcoin",
+        "2018",
+        "money",
+        "bonded-burn"
+      ],
       "cover": "covers/6a51737ef3ac315a6ba5e70e117536cee0cd33edd118901932cf185a679837f0.webp"
     }
   ]
