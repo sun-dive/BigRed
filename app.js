@@ -82,6 +82,8 @@ function render (data, activeTag) {
       ? `<span class="price">${(fees + bond).toLocaleString()} sats<span class="sub">${sub}</span></span>`
       : '<span></span>'
     const tags = (it.tags || []).map(t => `<button class="tag" data-tag="${escapeHtml(t)}">#${escapeHtml(t)}</button>`).join('')
+    // Short, pasteable share link (nft.sale/r/<slug>). Falls back to the full link until the curator has run.
+    const shortUrl = it.slug ? `${location.origin}/r/${it.slug}` : link
     const card = document.createElement('article')
     card.className = 'card'
     card.innerHTML =
@@ -96,10 +98,21 @@ function render (data, activeTag) {
           priceHtml +
           `<a class="buy" href="${link}" target="_blank" rel="noopener">Get a copy ↗</a>` +
         `</div>` +
+        `<button class="copylink" data-url="${escapeHtml(shortUrl)}">🔗 Copy share link</button>` +
       `</div>`
     grid.appendChild(card)
   }
   grid.querySelectorAll('.tag').forEach(b => { b.onclick = () => render(data, b.dataset.tag) }) // tap a card's tag to filter
+  grid.querySelectorAll('.copylink').forEach(b => {
+    b.onclick = async () => {
+      const url = b.dataset.url
+      try {
+        await navigator.clipboard.writeText(url)
+        const orig = b.textContent; b.textContent = '✓ Copied!'; b.classList.add('ok')
+        setTimeout(() => { b.textContent = orig; b.classList.remove('ok') }, 1500)
+      } catch { window.prompt('Copy this link:', url) }
+    }
+  })
 }
 
 load()

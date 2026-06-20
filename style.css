@@ -46,6 +46,13 @@ main { max-width: 1080px; margin: 0 auto; padding: 0 16px 48px; }
   background: var(--accent); color: #06122a; font-weight: 600; font-size: 13px;
   padding: 7px 12px; border-radius: 8px; white-space: nowrap;
 }
+.card .copylink {
+  margin-top: 8px; width: 100%; background: transparent; color: var(--muted);
+  border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px;
+  font-size: 12px; cursor: pointer; transition: border-color .15s, color .15s;
+}
+.card .copylink:hover { border-color: var(--accent); color: var(--fg); }
+.card .copylink.ok { color: #3fb950; border-color: #3fb950; }
 
 .site-foot { text-align: center; color: var(--muted); font-size: 13px; padding: 24px 16px 48px; border-top: 1px solid var(--line); }
 .site-foot p { margin: 4px 0; }
