@@ -22,6 +22,21 @@
       "cover": "covers/c9c16391bf1804f8ac069985edba0e354519ebebbf0192cb5cc13fb811c61baa.jpg"
     },
     {
+      "collectionId": "874494d44d14b081666cbff105e6104a43b5fe064db47374e524581f51c1e610",
+      "title": "Bitcoin White Paper",
+      "description": "Bitcoin: A Peer-to-Peer Electronic Cash System by Satoshi Nakamoto\n\nThe original Bitcoin whitepaper was first published by Satoshi Nakamoto on October 31st, 2008.\n\nNow stored immutably on the Bitcoin blockchain as a smart NFT.",
+      "priceSats": 1100,
+      "tags": [
+        "bitcoin",
+        "bitcoin-white-paper",
+        "electronic-cash-system",
+        "satoshi",
+        "satoshi-nakamoto",
+        "pdf"
+      ],
+      "cover": "covers/874494d44d14b081666cbff105e6104a43b5fe064db47374e524581f51c1e610.png"
+    },
+    {
       "collectionId": "6a51737ef3ac315a6ba5e70e117536cee0cd33edd118901932cf185a679837f0",
       "title": "Bitcoin Bonded Burn Covenant Tokens",
       "description": "Grab this PharLap Bonded-Burn covenant - test-02 and get ready to roll.",
