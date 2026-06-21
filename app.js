@@ -82,43 +82,40 @@ function renderFilters (data, activeTag) {
 }
 
 /** Render the catalog, optionally filtered to a single tag. */
-function render (data, activeTag) {
-  renderFilters(data, activeTag)
-  const grid = document.getElementById('grid')
-  const items = (data.listings || []).filter(it => activeTag == null || (it.tags || []).includes(activeTag))
-  if (items.length === 0) { grid.innerHTML = '<p class="empty">Nothing in that category yet.</p>'; return }
-  grid.innerHTML = ''
-  for (const it of items) {
-    const link = listingLink(it.collectionId, data.sitePubKey, data.affRefCode)
-    // Real cost to a buyer = the covenant fees + the refundable bond locked into their own copy, + network fee.
-    const fees = Number(it.priceSats || 0)
-    const bond = Number(it.bondSats || 0)
-    const sub = (bond > 1 ? `incl. ${bond.toLocaleString()} refundable bond · ` : '') + '+ network fee'
-    const priceHtml = it.priceSats != null
-      ? `<span class="price">${(fees + bond).toLocaleString()} sats<span class="sub">${sub}</span></span>`
-      : '<span></span>'
-    const tags = (it.tags || []).map(t => `<button class="tag" data-tag="${escapeHtml(t)}">#${escapeHtml(t)}</button>`).join('')
-    // Short, pasteable share link (nft.sale/r/<slug>). Falls back to the full link until the curator has run.
-    const shortUrl = it.slug ? `${location.origin}/r/${it.slug}` : link
-    const card = document.createElement('article')
-    card.className = 'card'
-    card.innerHTML =
-      `<a class="cover" href="${link}" target="_blank" rel="noopener">` +
-        (it.cover ? `<img loading="lazy" src="${escapeHtml(it.cover)}" alt="${escapeHtml(it.title || '')}" onerror="this.remove()">` : '') +
-      `</a>` +
-      `<div class="body">` +
-        `<h2>${escapeHtml(it.title || 'Untitled')}</h2>` +
-        (it.description ? `<p class="desc">${escapeHtml(it.description)}</p>` : '') +
-        (tags ? `<div class="tags">${tags}</div>` : '') +
-        `<div class="row">` +
-          priceHtml +
-          `<a class="buy" href="${link}" target="_blank" rel="noopener">Get a copy ↗</a>` +
-        `</div>` +
-        `<button class="copylink" data-url="${escapeHtml(shortUrl)}">🔗 Copy share link</button>` +
-      `</div>`
-    grid.appendChild(card)
-  }
-  grid.querySelectorAll('.tag').forEach(b => { b.onclick = () => render(data, b.dataset.tag) }) // tap a card's tag to filter
+function buildCard (it, data) {
+  const link = listingLink(it.collectionId, data.sitePubKey, data.affRefCode)
+  // Real cost to a buyer = the covenant fees + the refundable bond locked into their own copy, + network fee.
+  const fees = Number(it.priceSats || 0)
+  const bond = Number(it.bondSats || 0)
+  const sub = (bond > 1 ? `incl. ${bond.toLocaleString()} refundable bond · ` : '') + '+ network fee'
+  const priceHtml = it.priceSats != null
+    ? `<span class="price">${(fees + bond).toLocaleString()} sats<span class="sub">${sub}</span></span>`
+    : '<span></span>'
+  const tags = (it.tags || []).map(t => `<button class="tag" data-tag="${escapeHtml(t)}">#${escapeHtml(t)}</button>`).join('')
+  // Short, pasteable share link (nft.sale/r/<slug>). Falls back to the full link until the curator has run.
+  const shortUrl = it.slug ? `${location.origin}/r/${it.slug}` : link
+  const card = document.createElement('article')
+  card.className = 'card'
+  card.innerHTML =
+    `<a class="cover" href="${link}" target="_blank" rel="noopener">` +
+      (it.cover ? `<img loading="lazy" src="${escapeHtml(it.cover)}" alt="${escapeHtml(it.title || '')}" onerror="this.remove()">` : '') +
+    `</a>` +
+    `<div class="body">` +
+      `<h2>${escapeHtml(it.title || 'Untitled')}</h2>` +
+      (it.description ? `<p class="desc">${escapeHtml(it.description)}</p>` : '') +
+      (tags ? `<div class="tags">${tags}</div>` : '') +
+      `<div class="row">` +
+        priceHtml +
+        `<a class="buy" href="${link}" target="_blank" rel="noopener">Get a copy ↗</a>` +
+      `</div>` +
+      `<button class="copylink" data-url="${escapeHtml(shortUrl)}">🔗 Copy share link</button>` +
+    `</div>`
+  return card
+}
+
+// Wire the interactive bits on the cards now in the grid (idempotent — onclick assignment overwrites).
+function wireCards (grid, data) {
+  grid.querySelectorAll('.tag').forEach(b => { b.onclick = () => render(data, b.dataset.tag) }) // tap a tag to filter
   grid.querySelectorAll('.copylink').forEach(b => {
     b.onclick = async () => {
       const url = b.dataset.url
@@ -129,6 +126,37 @@ function render (data, activeTag) {
       } catch { window.prompt('Copy this link:', url) }
     }
   })
+}
+
+// Endless scroll: render the catalog in batches, adding more as a sentinel scrolls into view (à la IG/TikTok).
+const SCROLL_BATCH = 12
+let scrollObs = null
+function render (data, activeTag) {
+  renderFilters(data, activeTag)
+  const grid = document.getElementById('grid')
+  const items = (data.listings || []).filter(it => activeTag == null || (it.tags || []).includes(activeTag))
+  if (scrollObs) { scrollObs.disconnect(); scrollObs = null }
+  document.querySelectorAll('.scroll-sentinel').forEach(s => s.remove())
+  if (items.length === 0) { grid.innerHTML = '<p class="empty">Nothing in that category yet.</p>'; return }
+  grid.innerHTML = ''
+
+  const sentinel = document.createElement('div')
+  sentinel.className = 'scroll-sentinel'
+  grid.after(sentinel)
+  let shown = 0
+  const showMore = () => {
+    const frag = document.createDocumentFragment()
+    for (const it of items.slice(shown, shown + SCROLL_BATCH)) frag.appendChild(buildCard(it, data))
+    grid.appendChild(frag)
+    shown = Math.min(shown + SCROLL_BATCH, items.length)
+    wireCards(grid, data)
+    if (shown >= items.length) { if (scrollObs) { scrollObs.disconnect(); scrollObs = null } sentinel.remove() }
+  }
+  showMore()
+  if (shown < items.length) {
+    scrollObs = new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) showMore() }, { rootMargin: '800px' })
+    scrollObs.observe(sentinel)
+  }
 }
 
 load()

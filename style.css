@@ -73,6 +73,7 @@ main { max-width: 1080px; margin: 0 auto; padding: 0 16px 48px; }
 .sell-copy:hover { border-color: var(--accent); color: var(--fg); }
 
 .site-foot { text-align: center; color: var(--muted); font-size: 13px; padding: 24px 16px 48px; border-top: 1px solid var(--line); }
+.scroll-sentinel { height: 1px; width: 100%; }
 .woc-badge { height: 48px; width: auto; opacity: .85; margin-bottom: 8px; }
 .woc-badge:hover { opacity: 1; }
 .site-foot p { margin: 4px 0; }
