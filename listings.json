@@ -3,28 +3,21 @@
   "affRefCode": "13a59b79-e805-4a01-a2f6-4eb3e936d8cd",
   "listings": [
     {
-      "collectionId": "0f8d45def474654b43410b121a6d7d8c79d955ca722278e5c04dd5157082ba0b",
-      "title": "PharLap bonded-burn covenant - test-01",
-      "description": "Recipient can replicate and or burn their token to recover the bond.",
-      "priceSats": 4200,
-      "bondSats": 1,
+      "collectionId": "aaad90553b1187f632c2a371d0a8e1e93503ddb33998f867694d1b41d3089911",
+      "genesisTxid": "aaad90553b1187f632c2a371d0a8e1e93503ddb33998f867694d1b41d3089911",
+      "issuedAt": 1782468612,
+      "title": "CHAINSAW SCULPTOR - BYF",
+      "description": "This is an unreleased demo recording by Chainsaw Sculptor, recorded in 1998.",
+      "priceSats": 20000,
+      "bondSats": 1000,
       "tags": [],
-      "cover": "covers/0f8d45def474654b43410b121a6d7d8c79d955ca722278e5c04dd5157082ba0b.webp"
-    },
-    {
-      "collectionId": "c9c16391bf1804f8ac069985edba0e354519ebebbf0192cb5cc13fb811c61baa",
-      "title": "Phar Lap app as on June 17 2026",
-      "description": "This is a zip file of the current html page and bundle.js for the Phar Lap app.",
-      "priceSats": 2,
-      "bondSats": 1,
-      "tags": [
-        "software",
-        "phar-lap"
-      ],
-      "cover": "covers/c9c16391bf1804f8ac069985edba0e354519ebebbf0192cb5cc13fb811c61baa.jpg"
+      "cover": "covers/aaad90553b1187f632c2a371d0a8e1e93503ddb33998f867694d1b41d3089911.webp",
+      "slug": "chainsaw-sculptor-byf"
     },
     {
       "collectionId": "874494d44d14b081666cbff105e6104a43b5fe064db47374e524581f51c1e610",
+      "genesisTxid": "874494d44d14b081666cbff105e6104a43b5fe064db47374e524581f51c1e610",
+      "issuedAt": 1781936670,
       "title": "Bitcoin White Paper",
       "description": "Bitcoin: A Peer-to-Peer Electronic Cash System by Satoshi Nakamoto\n\nThe original Bitcoin whitepaper was first published by Satoshi Nakamoto on October 31st, 2008.\n\nNow stored immutably on the Bitcoin blockchain as a smart NFT.",
       "priceSats": 1100,
@@ -37,7 +30,47 @@
         "satoshi-nakamoto",
         "pdf"
       ],
-      "cover": "covers/874494d44d14b081666cbff105e6104a43b5fe064db47374e524581f51c1e610.png"
+      "cover": "covers/874494d44d14b081666cbff105e6104a43b5fe064db47374e524581f51c1e610.png",
+      "slug": "bitcoin-white-paper"
+    },
+    {
+      "collectionId": "925b76109c68d5670dda0aff592b6270039c557e9350b9f195c845fc8067ba51",
+      "genesisTxid": "925b76109c68d5670dda0aff592b6270039c557e9350b9f195c845fc8067ba51",
+      "issuedAt": 1781391106,
+      "title": "Smart NFT V2 test-01",
+      "description": "Phar Lap - Smart NFT",
+      "priceSats": 5000,
+      "bondSats": 1,
+      "tags": [],
+      "cover": "covers/925b76109c68d5670dda0aff592b6270039c557e9350b9f195c845fc8067ba51.jpg",
+      "slug": "smart-nft-v2-test-01"
+    },
+    {
+      "collectionId": "0f8d45def474654b43410b121a6d7d8c79d955ca722278e5c04dd5157082ba0b",
+      "genesisTxid": "0f8d45def474654b43410b121a6d7d8c79d955ca722278e5c04dd5157082ba0b",
+      "issuedAt": 1781672444,
+      "title": "PharLap bonded-burn covenant - test-01",
+      "description": "Recipient can replicate and or burn their token to recover the bond.",
+      "priceSats": 4200,
+      "bondSats": 1,
+      "tags": [],
+      "cover": "covers/0f8d45def474654b43410b121a6d7d8c79d955ca722278e5c04dd5157082ba0b.webp",
+      "slug": "pharlap-bonded-burn-covenant-test-01"
+    },
+    {
+      "collectionId": "c9c16391bf1804f8ac069985edba0e354519ebebbf0192cb5cc13fb811c61baa",
+      "genesisTxid": "c9c16391bf1804f8ac069985edba0e354519ebebbf0192cb5cc13fb811c61baa",
+      "issuedAt": 1781699755,
+      "title": "Phar Lap app as on June 17 2026",
+      "description": "This is a zip file of the current html page and bundle.js for the Phar Lap app.",
+      "priceSats": 2,
+      "bondSats": 1,
+      "tags": [
+        "software",
+        "phar-lap"
+      ],
+      "cover": "covers/c9c16391bf1804f8ac069985edba0e354519ebebbf0192cb5cc13fb811c61baa.jpg",
+      "slug": "phar-lap-app-as-on-june-17-2026"
     },
     {
       "collectionId": "6a51737ef3ac315a6ba5e70e117536cee0cd33edd118901932cf185a679837f0",
@@ -51,7 +84,8 @@
         "bonded-burn"
       ],
       "cover": "covers/6a51737ef3ac315a6ba5e70e117536cee0cd33edd118901932cf185a679837f0.webp",
-      "bondSats": 1
+      "bondSats": 1,
+      "slug": "bitcoin-bonded-burn-covenant-tokens"
     }
   ]
 }

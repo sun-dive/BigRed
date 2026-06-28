@@ -92,6 +92,13 @@ function buildCard (it, data) {
     ? `<span class="price">${(fees + bond).toLocaleString()} sats<span class="sub">${sub}</span></span>`
     : '<span></span>'
   const tags = (it.tags || []).map(t => `<button class="tag" data-tag="${escapeHtml(t)}">#${escapeHtml(t)}</button>`).join('')
+  // Validated-genesis badge: the curator verified this descends from its genesis mint and recorded the issue
+  // date (genesis block time). Links to the genesis tx on WhatsOnChain so anyone can check it independently.
+  const genesisId = it.genesisTxid || it.collectionId
+  const issued = it.issuedAt ? new Date(it.issuedAt * 1000).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : ''
+  const genesisHtml = it.genesisTxid
+    ? `<a class="genesis" href="https://whatsonchain.com/tx/${encodeURIComponent(genesisId)}" target="_blank" rel="noopener" title="Genesis mint verified at listing — view it on WhatsOnChain">✓ Genesis${issued ? ' · issued ' + escapeHtml(issued) : ''} ↗</a>`
+    : ''
   // Short, pasteable share link (nft.sale/r/<slug>). Falls back to the full link until the curator has run.
   const shortUrl = it.slug ? `${location.origin}/r/${it.slug}` : link
   const card = document.createElement('article')
@@ -104,6 +111,7 @@ function buildCard (it, data) {
       `<h2>${escapeHtml(it.title || 'Untitled')}</h2>` +
       (it.description ? `<p class="desc">${escapeHtml(it.description)}</p>` : '') +
       (tags ? `<div class="tags">${tags}</div>` : '') +
+      genesisHtml +
       `<div class="row">` +
         priceHtml +
         `<a class="buy" href="${link}" target="_blank" rel="noopener">Get a copy ↗</a>` +
