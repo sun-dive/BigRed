@@ -31,8 +31,16 @@ main { max-width: 1080px; margin: 0 auto; padding: 0 16px 48px; }
 .card .tag { background: transparent; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 1px 8px; font-size: 11px; cursor: pointer; }
 .card .tag:hover { color: var(--accent); border-color: var(--accent); }
 /* Validated-genesis badge — a small pill showing the verified genesis + issue date, linking to WhatsOnChain. */
-.card .genesis { align-self: flex-start; color: var(--muted); font-size: 11.5px; border: 1px solid var(--line); border-radius: 999px; padding: 1px 9px; line-height: 1.7; white-space: nowrap; }
+.card .genesis { color: var(--muted); font-size: 11.5px; border: 1px solid var(--line); border-radius: 999px; padding: 1px 9px; line-height: 1.7; white-space: nowrap; }
 .card .genesis:hover { color: #3fb950; border-color: #3fb950; }
+/* Badge row — validated-genesis + "sold" pills together. */
+.card .badges { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 2px 0 0; }
+.card .sold { color: #ff8c42; font-size: 11.5px; font-weight: 600; border: 1px solid rgba(255, 140, 66, .5); border-radius: 999px; padding: 1px 9px; line-height: 1.7; white-space: nowrap; }
+/* Sort control (Most sold / Newest / Price) between the category filters and the grid. */
+.sortbar { display: flex; justify-content: center; align-items: center; gap: 8px; margin: 0 0 18px; color: var(--muted); font-size: 13px; }
+.sortbar[hidden] { display: none; }
+.sortbar select { background: var(--panel); color: var(--fg); border: 1px solid var(--line); border-radius: 999px; padding: 5px 11px; font-size: 13px; cursor: pointer; }
+.sortbar select:hover { border-color: var(--accent); }
 .empty { color: var(--muted); text-align: center; grid-column: 1 / -1; padding: 40px 0; }
 .empty code { background: var(--panel); border: 1px solid var(--line); border-radius: 5px; padding: 1px 5px; }
 

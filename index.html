@@ -29,6 +29,15 @@
 
   <main>
     <nav id="filters" class="filters" aria-label="Categories"></nav>
+    <div class="sortbar" id="sortbar" hidden>
+      <label for="sort">Sort</label>
+      <select id="sort">
+        <option value="sold">🔥 Most sold</option>
+        <option value="new">🆕 Newest</option>
+        <option value="price-asc">Price: low → high</option>
+        <option value="price-desc">Price: high → low</option>
+      </select>
+    </div>
     <section id="grid" class="grid"><p class="empty">Loading listings…</p></section>
   </main>
 

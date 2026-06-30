@@ -10,6 +10,7 @@
  * Buyers who open it replicate from the SITE's held copy → the site earns the reseller fee (no signing).
  */
 const SMARTNFTS = 'https://smartnfts.com'
+let CURRENT_TAG = null // remembered so the sort control can re-render within the active category
 
 function escapeHtml (s) {
   return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
@@ -62,7 +63,28 @@ async function load () {
   const items = Array.isArray(data.listings) ? data.listings : []
   if (items.length === 0) { grid.innerHTML = '<p class="empty">No listings yet — add entries to <code>listings.json</code>.</p>'; return }
 
+  // Sort control (Most sold / Newest / Price). Re-renders within the current category on change.
+  const sortbar = document.getElementById('sortbar')
+  const sortSel = document.getElementById('sort')
+  if (sortbar && sortSel) { sortbar.hidden = false; sortSel.onchange = () => render(data, CURRENT_TAG) }
+
   render(data, null) // null = no tag filter (show all)
+}
+
+/** Buyer's all-in cost (covenant fees + refundable bond), for price sorting. */
+function priceOf (it) { return Number(it.priceSats || 0) + Number(it.bondSats || 0) }
+
+/** Sort listings in place by the active sort mode. "Most sold" leads with bestsellers, newest breaks ties. */
+function sortListings (items) {
+  const sel = document.getElementById('sort')
+  const mode = sel ? sel.value : 'sold'
+  const fns = {
+    sold: (a, b) => (b.salesCount || 0) - (a.salesCount || 0) || (b.issuedAt || 0) - (a.issuedAt || 0),
+    new: (a, b) => (b.issuedAt || 0) - (a.issuedAt || 0),
+    'price-asc': (a, b) => priceOf(a) - priceOf(b),
+    'price-desc': (a, b) => priceOf(b) - priceOf(a)
+  }
+  items.sort(fns[mode] || fns.sold)
 }
 
 /** All distinct tags across listings (sorted) — drives the filter bar. */
@@ -99,6 +121,9 @@ function buildCard (it, data) {
   const genesisHtml = it.genesisTxid
     ? `<a class="genesis" href="https://whatsonchain.com/tx/${encodeURIComponent(genesisId)}" target="_blank" rel="noopener" title="Genesis mint verified at listing — view it on WhatsOnChain">✓ Genesis${issued ? ' · issued ' + escapeHtml(issued) : ''} ↗</a>`
     : ''
+  // Social proof: copies sold through nft.sale (curator counts replicates sourced from the site wallet).
+  const sold = Number(it.salesCount || 0)
+  const soldHtml = sold > 0 ? `<span class="sold" title="Copies sold through nft.sale">🔥 ${sold.toLocaleString()} sold</span>` : ''
   // Short, pasteable share link (nft.sale/r/<slug>). Falls back to the full link until the curator has run.
   const shortUrl = it.slug ? `${location.origin}/r/${it.slug}` : link
   const card = document.createElement('article')
@@ -111,7 +136,7 @@ function buildCard (it, data) {
       `<h2>${escapeHtml(it.title || 'Untitled')}</h2>` +
       (it.description ? `<p class="desc">${escapeHtml(it.description)}</p>` : '') +
       (tags ? `<div class="tags">${tags}</div>` : '') +
-      genesisHtml +
+      (genesisHtml || soldHtml ? `<div class="badges">${genesisHtml}${soldHtml}</div>` : '') +
       `<div class="row">` +
         priceHtml +
         `<a class="buy" href="${link}" target="_blank" rel="noopener">Get a copy ↗</a>` +
@@ -140,9 +165,11 @@ function wireCards (grid, data) {
 const SCROLL_BATCH = 12
 let scrollObs = null
 function render (data, activeTag) {
+  CURRENT_TAG = activeTag
   renderFilters(data, activeTag)
   const grid = document.getElementById('grid')
   const items = (data.listings || []).filter(it => activeTag == null || (it.tags || []).includes(activeTag))
+  sortListings(items)
   if (scrollObs) { scrollObs.disconnect(); scrollObs = null }
   document.querySelectorAll('.scroll-sentinel').forEach(s => s.remove())
   if (items.length === 0) { grid.innerHTML = '<p class="empty">Nothing in that category yet.</p>'; return }
