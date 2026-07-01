@@ -74,3 +74,7 @@ browsing makes **zero** blockchain calls; checkout happens on smartnfts.com. The
 The site earns the reseller fee passively to `sitePubKey`. To monitor: load the **public key** in Phar Lap's
 **👁 Watch a wallet** (watch-only, no key). To withdraw: sign a sweep on your offline machine via the
 **air-gapped signing** flow. The private key never needs to touch the server.
+
+## License
+© 2026 sun-dive. Licensed under the **Open BSV License Version 6** — see [LICENSE](./LICENSE). © BSV Association.
+The software, and anything derived from it, **may only be used on the BSV Blockchain**.
