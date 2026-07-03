@@ -32,11 +32,13 @@ async function load () {
     return
   }
 
-  // "New to BSV?" fund-up link — Orange Gateway signup carrying the site's referral code, so unfunded
-  // visitors can get a little BSV (and the site earns the signup referral).
+  // "New to BSV?" on-ramp — SimpleSwap: swap any crypto for BSV (or buy with card), delivered to your wallet.
+  // Shown to everyone; carries the site's SimpleSwap referral code (data.affRefCode) when set, so swaps driven
+  // from here earn a small commission. (Orange Gateway shut down; SimpleSwap is the replacement.)
   const fund = document.getElementById('fund')
-  if (fund != null && data.affRefCode) {
-    fund.querySelector('a').href = 'https://exchange.orangegateway.com/signup?ref-code=' + encodeURIComponent(data.affRefCode)
+  if (fund != null) {
+    const ref = data.affRefCode ? '?ref=' + encodeURIComponent(data.affRefCode) : ''
+    fund.querySelector('a').href = 'https://simpleswap.io/' + ref
     fund.hidden = false
   }
 
