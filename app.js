@@ -37,10 +37,11 @@ async function load () {
   // from here earn a small commission. (Orange Gateway shut down; SimpleSwap is the replacement.)
   const fund = document.getElementById('fund')
   if (fund != null) {
-    // Pre-select a BTC → BSV swap so newcomers land ready to buy BSV (buyers can switch the source coin;
-    // BTC/ETH/USDT are the easy-to-find options). Without to=bsv-bsv they'd have to scroll a huge coin list.
+    // Pre-select a ~0.001 BTC (≈ $60 of BSV) BTC → BSV swap so newcomers land ready to buy BSV (buyers can
+    // switch the source coin — BTC/ETH/USDT are easy to find — and the amount). Without to=bsv-bsv they'd have
+    // to scroll a huge coin list; without amount they'd get SimpleSwap's wild 0.1 BTC default.
     const ref = data.affRefCode ? 'ref=' + encodeURIComponent(data.affRefCode) + '&' : ''
-    fund.querySelector('a').href = 'https://simpleswap.io/?' + ref + 'from=btc-btc&to=bsv-bsv'
+    fund.querySelector('a').href = 'https://simpleswap.io/?' + ref + 'from=btc-btc&to=bsv-bsv&amount=0.001'
     fund.hidden = false
   }
 
