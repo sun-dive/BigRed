@@ -32,7 +32,7 @@ async function load () {
     return
   }
 
-  // "New to BSV?" on-ramp — SimpleSwap: swap any crypto for BSV (or buy with card), delivered to your wallet.
+  // "New to BSV?" on-ramp — SimpleSwap: swap any crypto — incl. stablecoins (USDT/USDC) — for BSV, delivered to your wallet.
   // Shown to everyone; carries the site's SimpleSwap referral code (data.affRefCode) when set, so swaps driven
   // from here earn a small commission. (Orange Gateway shut down; SimpleSwap is the replacement.)
   const fund = document.getElementById('fund')
