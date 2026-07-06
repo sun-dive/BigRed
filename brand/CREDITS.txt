@@ -1,0 +1,12 @@
+Third-party assets in this folder
+==================================
+
+favicon.svg
+  A galloping red horse, derived from Twemoji's "horse" emoji 🐎 (U+1F40E),
+  recolored to the brand red (#e01e28).
+  Twemoji © Twitter, Inc and contributors.
+  Licensed under CC-BY 4.0 — https://creativecommons.org/licenses/by/4.0/
+  Source: https://github.com/twitter/twemoji
+
+powered-by-whatsonchain-white.svg
+  WhatsOnChain "powered by" badge © WhatsOnChain — used to credit the block explorer.
