@@ -10,7 +10,20 @@
  * Buyers who open it replicate from the SITE's held copy → the site earns the reseller fee (no signing).
  */
 const SMARTNFTS = 'https://smartnfts.com'
-let CURRENT_TAG = null // remembered so the sort control can re-render within the active category
+let CURRENT_CAT = null // active content-type category filter (null = all)
+let TAG_QUERY = ''     // active hashtag filter (substring; set by the search box or a popular-tag chip)
+
+// Content-type categories — same taxonomy as Phar Lap's "My NFTs". Each listing's `category` key is written by
+// the curator (from the NFT's on-chain content MIME); the chip row shows only categories that are present.
+const CATS = [
+  { key: 'image', label: 'Images', icon: '🖼️' },
+  { key: 'audio', label: 'Audio', icon: '🎵' },
+  { key: 'video', label: 'Video', icon: '🎬' },
+  { key: 'document', label: 'Documents', icon: '📄' },
+  { key: 'text', label: 'Text', icon: '📝' },
+  { key: 'archive', label: 'Archives', icon: '🗜️' },
+  { key: 'other', label: 'Other', icon: '🎴' }
+]
 
 function escapeHtml (s) {
   return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
@@ -71,9 +84,9 @@ async function load () {
   // Sort control (Most sold / Newest / Price). Re-renders within the current category on change.
   const sortbar = document.getElementById('sortbar')
   const sortSel = document.getElementById('sort')
-  if (sortbar && sortSel) { sortbar.hidden = false; sortSel.onchange = () => render(data, CURRENT_TAG) }
+  if (sortbar && sortSel) { sortbar.hidden = false; sortSel.onchange = () => render(data) }
 
-  render(data, null) // null = no tag filter (show all)
+  render(data)
 }
 
 /** Buyer's all-in cost (covenant fees + refundable bond), for price sorting. */
@@ -92,20 +105,59 @@ function sortListings (items) {
   items.sort(fns[mode] || fns.sold)
 }
 
-/** All distinct tags across listings (sorted) — drives the filter bar. */
-function allTags (data) {
-  return [...new Set((data.listings || []).flatMap(it => it.tags || []))].sort()
+/** Count listings per content-type category (only categories that actually occur). */
+function catCounts (data) {
+  const m = new Map()
+  for (const it of data.listings || []) { const k = it.category || 'other'; m.set(k, (m.get(k) || 0) + 1) }
+  return m
 }
 
-/** Render the category filter chips (All + one per tag). Hidden when no listing has tags. */
-function renderFilters (data, activeTag) {
-  const bar = document.getElementById('filters')
+/** Render the category chip row (All + one chip per present category, in CATS order). Hidden unless ≥2
+ *  categories exist — a single-category catalog needs no category filter. */
+function renderCats (data) {
+  const bar = document.getElementById('cats')
   if (bar == null) return
-  const tags = allTags(data)
-  if (tags.length === 0) { bar.innerHTML = ''; return }
-  const chip = (label, tag) => `<button class="chip${tag === activeTag ? ' active' : ''}" data-tag="${escapeHtml(tag ?? '')}">${escapeHtml(label)}</button>`
-  bar.innerHTML = chip('All', null) + tags.map(t => chip('#' + t, t)).join('')
-  bar.querySelectorAll('.chip').forEach(b => { b.onclick = () => render(data, b.dataset.tag || null) })
+  const counts = catCounts(data)
+  const present = CATS.filter(c => counts.get(c.key))
+  if (present.length < 2) { bar.innerHTML = ''; return }
+  const total = (data.listings || []).length
+  const chip = (label, key, n) => `<button class="chip${key === CURRENT_CAT ? ' active' : ''}" data-cat="${escapeHtml(key ?? '')}">${escapeHtml(label)}<span class="n">${n}</span></button>`
+  bar.innerHTML = chip('All', null, total) + present.map(c => chip(`${c.icon} ${c.label}`, c.key, counts.get(c.key))).join('')
+  bar.querySelectorAll('.chip').forEach(b => { b.onclick = () => { CURRENT_CAT = b.dataset.cat || null; render(data) } })
+}
+
+/** Count listings per hashtag → drives the "popular hashtags" list (most-used first). */
+function tagCounts (data) {
+  const m = new Map()
+  for (const it of data.listings || []) for (const t of it.tags || []) m.set(t, (m.get(t) || 0) + 1)
+  return m
+}
+
+/** Render the hashtag search box + a short "popular hashtags" chip list. Hidden when no listing has tags. */
+const POPULAR_TAGS = 10
+function renderTagbar (data) {
+  const bar = document.getElementById('tagbar')
+  const pop = document.getElementById('poptags')
+  const search = document.getElementById('tagSearch')
+  if (bar == null || pop == null) return
+  const counts = tagCounts(data)
+  if (counts.size === 0) { bar.hidden = true; return }
+  bar.hidden = false
+  const popular = [...counts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, POPULAR_TAGS).map(([t]) => t)
+  const active = TAG_QUERY.toLowerCase()
+  const chip = t => `<button class="chip${active && t.toLowerCase() === active ? ' active' : ''}" data-tag="${escapeHtml(t)}">#${escapeHtml(t)}</button>`
+  pop.innerHTML = popular.map(chip).join('')
+  pop.querySelectorAll('.chip').forEach(b => { b.onclick = () => setTagQuery(data, b.dataset.tag) })
+  if (search && !search.dataset.wired) { search.dataset.wired = '1'; search.oninput = () => setTagQuery(data, search.value.trim(), true) }
+}
+
+/** Set the active hashtag filter (from a chip or the search box) and re-render. `fromSearch` avoids
+ *  clobbering the text the user is actively typing into the box. */
+function setTagQuery (data, q, fromSearch) {
+  TAG_QUERY = q || ''
+  const search = document.getElementById('tagSearch')
+  if (search && !fromSearch) search.value = TAG_QUERY
+  render(data)
 }
 
 /** Render the catalog, optionally filtered to a single tag. */
@@ -153,7 +205,7 @@ function buildCard (it, data) {
 
 // Wire the interactive bits on the cards now in the grid (idempotent — onclick assignment overwrites).
 function wireCards (grid, data) {
-  grid.querySelectorAll('.tag').forEach(b => { b.onclick = () => render(data, b.dataset.tag) }) // tap a tag to filter
+  grid.querySelectorAll('.tag').forEach(b => { b.onclick = () => setTagQuery(data, b.dataset.tag) }) // tap a card tag to filter
   grid.querySelectorAll('.copylink').forEach(b => {
     b.onclick = async () => {
       const url = b.dataset.url
@@ -169,15 +221,19 @@ function wireCards (grid, data) {
 // Endless scroll: render the catalog in batches, adding more as a sentinel scrolls into view (à la IG/TikTok).
 const SCROLL_BATCH = 12
 let scrollObs = null
-function render (data, activeTag) {
-  CURRENT_TAG = activeTag
-  renderFilters(data, activeTag)
+function render (data) {
+  renderCats(data)
+  renderTagbar(data)
   const grid = document.getElementById('grid')
-  const items = (data.listings || []).filter(it => activeTag == null || (it.tags || []).includes(activeTag))
+  const q = TAG_QUERY.toLowerCase()
+  const items = (data.listings || []).filter(it =>
+    (CURRENT_CAT == null || (it.category || 'other') === CURRENT_CAT) &&
+    (q === '' || (it.tags || []).some(t => t.toLowerCase().includes(q)))
+  )
   sortListings(items)
   if (scrollObs) { scrollObs.disconnect(); scrollObs = null }
   document.querySelectorAll('.scroll-sentinel').forEach(s => s.remove())
-  if (items.length === 0) { grid.innerHTML = '<p class="empty">Nothing in that category yet.</p>'; return }
+  if (items.length === 0) { grid.innerHTML = '<p class="empty">Nothing matches — try clearing the filters.</p>'; return }
   grid.innerHTML = ''
 
   const sentinel = document.createElement('div')

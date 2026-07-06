@@ -15,15 +15,30 @@ a { color: var(--accent); text-decoration: none; }
 .fund { margin: 8px 0 0; font-size: 13px; }
 
 main { max-width: 1080px; margin: 0 auto; padding: 0 16px 48px; }
-/* Category filter bar */
-.filters { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 0 0 20px; }
-.filters:empty { display: none; }
+/* Content-type category bar (Audio / Images / … — only shown when ≥2 categories exist) */
+.cats { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 0 0 14px; }
+.cats:empty { display: none; }
 .chip {
   background: var(--panel); color: var(--fg); border: 1px solid var(--line); border-radius: 999px;
   padding: 5px 13px; font-size: 13px; cursor: pointer;
 }
 .chip:hover { border-color: var(--accent); }
 .chip.active { background: var(--accent); color: #06122a; border-color: var(--accent); font-weight: 600; }
+.chip .n { opacity: .6; font-weight: 400; margin-left: 4px; }
+.chip.active .n { opacity: .75; }
+/* Hashtag search + "popular hashtags" chips */
+.tagbar { display: flex; flex-direction: column; align-items: center; gap: 9px; margin: 0 0 16px; }
+.tagbar[hidden] { display: none; }
+.tag-search {
+  width: min(360px, 90%); background: var(--panel); color: var(--fg); border: 1px solid var(--line);
+  border-radius: 999px; padding: 7px 15px; font-size: 13px;
+}
+.tag-search:focus { outline: none; border-color: var(--accent); }
+.poptags { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+.poptags:empty { display: none; }
+.poptags .chip { font-size: 12px; padding: 3px 11px; color: var(--muted); }
+.poptags .chip:hover { color: var(--fg); }
+.poptags .chip.active { color: #06122a; }
 
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
 /* Per-card tags */
@@ -49,8 +64,15 @@ main { max-width: 1080px; margin: 0 auto; padding: 0 16px 48px; }
 .card .cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .card .body { padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
 .card h2 { margin: 0; font-size: 16px; }
-.card .desc { margin: 0; color: var(--muted); font-size: 13px; flex: 1; }
-.card .row { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-top: 6px; }
+/* Clamp long descriptions to ~5 lines so every card is a uniform height (the full text lives on the listing
+   page). The price row is pinned to the card bottom via margin-top:auto below, so short + long descriptions
+   still line their prices up. */
+.card .desc {
+  margin: 0; color: var(--muted); font-size: 13px;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 5; line-clamp: 5;
+  overflow: hidden; text-overflow: ellipsis;
+}
+.card .row { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-top: auto; padding-top: 6px; }
 .card .price { font-weight: 600; font-size: 14px; }
 .card .price .sub { display: block; color: var(--muted); font-weight: 400; font-size: 11px; margin-top: 1px; }
 .card .buy {

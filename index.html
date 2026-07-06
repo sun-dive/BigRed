@@ -28,7 +28,11 @@
   </header>
 
   <main>
-    <nav id="filters" class="filters" aria-label="Categories"></nav>
+    <nav id="cats" class="cats" aria-label="Categories"></nav>
+    <div class="tagbar" id="tagbar" hidden>
+      <input id="tagSearch" class="tag-search" type="search" placeholder="🔎  Search hashtags…" autocomplete="off" aria-label="Search hashtags" />
+      <nav id="poptags" class="poptags" aria-label="Popular hashtags"></nav>
+    </div>
     <div class="sortbar" id="sortbar" hidden>
       <label for="sort">Sort</label>
       <select id="sort">
