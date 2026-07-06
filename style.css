@@ -1,15 +1,19 @@
 :root {
-  --bg: #0d1117; --panel: #161b22; --line: #30363d; --fg: #e6edf3; --muted: #8b949e; --accent: #58a6ff;
+  --bg: #0d1117; --panel: #161b22; --line: #30363d; --fg: #e6edf3; --muted: #8b949e;
+  /* BigRed accent: deep-red FILLS (--accent) carry white text (--accent-fg); a brighter red (--link) is used
+     for text + borders on the dark background, where the deep red alone would be too low-contrast. */
+  --accent: #e01e28; --accent-fg: #ffffff; --link: #ff5d5d;
 }
 * { box-sizing: border-box; }
 body {
   margin: 0; background: var(--bg); color: var(--fg);
   font: 16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
 }
-a { color: var(--accent); text-decoration: none; }
+a { color: var(--link); text-decoration: none; }
 
 .site-head { text-align: center; padding: 40px 16px 24px; }
-.brand { margin: 0; font-size: 28px; letter-spacing: -0.3px; }
+.brand { margin: 0; font-size: 28px; letter-spacing: -0.3px; display: inline-flex; align-items: center; gap: 9px; }
+.brand-horse { height: 32px; width: auto; }
 .tagline { margin: 6px 0 0; color: var(--muted); }
 .howto { margin: 10px 0 0; color: var(--muted); font-size: 13px; }
 .fund { margin: 8px 0 0; font-size: 13px; }
@@ -22,10 +26,10 @@ main { max-width: 1080px; margin: 0 auto; padding: 0 16px 48px; }
   background: var(--panel); color: var(--fg); border: 1px solid var(--line); border-radius: 999px;
   padding: 5px 13px; font-size: 13px; cursor: pointer;
 }
-.chip:hover { border-color: var(--accent); }
-.chip.active { background: var(--accent); color: #06122a; border-color: var(--accent); font-weight: 600; }
+.chip:hover { border-color: var(--link); }
+.chip.active { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); font-weight: 600; }
 .chip .n { opacity: .6; font-weight: 400; margin-left: 4px; }
-.chip.active .n { opacity: .75; }
+.chip.active .n { opacity: .85; }
 /* Hashtag search + "popular hashtags" chips */
 .tagbar { display: flex; flex-direction: column; align-items: center; gap: 9px; margin: 0 0 16px; }
 .tagbar[hidden] { display: none; }
@@ -33,18 +37,18 @@ main { max-width: 1080px; margin: 0 auto; padding: 0 16px 48px; }
   width: min(360px, 90%); background: var(--panel); color: var(--fg); border: 1px solid var(--line);
   border-radius: 999px; padding: 7px 15px; font-size: 13px;
 }
-.tag-search:focus { outline: none; border-color: var(--accent); }
+.tag-search:focus { outline: none; border-color: var(--link); }
 .poptags { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
 .poptags:empty { display: none; }
 .poptags .chip { font-size: 12px; padding: 3px 11px; color: var(--muted); }
 .poptags .chip:hover { color: var(--fg); }
-.poptags .chip.active { color: #06122a; }
+.poptags .chip.active { color: var(--accent-fg); }
 
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
 /* Per-card tags */
 .card .tags { display: flex; flex-wrap: wrap; gap: 5px; margin: 2px 0 0; }
 .card .tag { background: transparent; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 1px 8px; font-size: 11px; cursor: pointer; }
-.card .tag:hover { color: var(--accent); border-color: var(--accent); }
+.card .tag:hover { color: var(--link); border-color: var(--link); }
 /* Validated-genesis badge — a small pill showing the verified genesis + issue date, linking to WhatsOnChain. */
 .card .genesis { color: var(--muted); font-size: 11.5px; border: 1px solid var(--line); border-radius: 999px; padding: 1px 9px; line-height: 1.7; white-space: nowrap; }
 .card .genesis:hover { color: #3fb950; border-color: #3fb950; }
@@ -55,7 +59,7 @@ main { max-width: 1080px; margin: 0 auto; padding: 0 16px 48px; }
 .sortbar { display: flex; justify-content: center; align-items: center; gap: 8px; margin: 0 0 18px; color: var(--muted); font-size: 13px; }
 .sortbar[hidden] { display: none; }
 .sortbar select { background: var(--panel); color: var(--fg); border: 1px solid var(--line); border-radius: 999px; padding: 5px 11px; font-size: 13px; cursor: pointer; }
-.sortbar select:hover { border-color: var(--accent); }
+.sortbar select:hover { border-color: var(--link); }
 .empty { color: var(--muted); text-align: center; grid-column: 1 / -1; padding: 40px 0; }
 .empty code { background: var(--panel); border: 1px solid var(--line); border-radius: 5px; padding: 1px 5px; }
 
@@ -76,7 +80,7 @@ main { max-width: 1080px; margin: 0 auto; padding: 0 16px 48px; }
 .card .price { font-weight: 600; font-size: 14px; }
 .card .price .sub { display: block; color: var(--muted); font-weight: 400; font-size: 11px; margin-top: 1px; }
 .card .buy {
-  background: var(--accent); color: #06122a; font-weight: 600; font-size: 13px;
+  background: var(--accent); color: var(--accent-fg); font-weight: 600; font-size: 13px;
   padding: 7px 12px; border-radius: 8px; white-space: nowrap;
 }
 .card .copylink {
@@ -84,7 +88,7 @@ main { max-width: 1080px; margin: 0 auto; padding: 0 16px 48px; }
   border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px;
   font-size: 12px; cursor: pointer; transition: border-color .15s, color .15s;
 }
-.card .copylink:hover { border-color: var(--accent); color: var(--fg); }
+.card .copylink:hover { border-color: var(--link); color: var(--fg); }
 .card .copylink.ok { color: #3fb950; border-color: #3fb950; }
 
 .sell {
@@ -94,7 +98,7 @@ main { max-width: 1080px; margin: 0 auto; padding: 0 16px 48px; }
 .sell h2 { margin: 0 0 6px; font-size: 18px; }
 .sell p { margin: 0 auto; color: var(--muted); font-size: 14px; max-width: 52ch; }
 .sell-cta {
-  display: inline-block; margin: 14px 0 4px; background: var(--accent); color: #06122a;
+  display: inline-block; margin: 14px 0 4px; background: var(--accent); color: var(--accent-fg);
   font-weight: 600; font-size: 14px; padding: 10px 18px; border-radius: 10px;
 }
 .sell-key { font-size: 12px !important; margin-top: 12px !important; }
@@ -103,7 +107,7 @@ main { max-width: 1080px; margin: 0 auto; padding: 0 16px 48px; }
   background: transparent; color: var(--muted); border: 1px solid var(--line);
   border-radius: 6px; padding: 2px 8px; font-size: 11px; cursor: pointer; margin-left: 4px;
 }
-.sell-copy:hover { border-color: var(--accent); color: var(--fg); }
+.sell-copy:hover { border-color: var(--link); color: var(--fg); }
 
 .site-foot { text-align: center; color: var(--muted); font-size: 13px; padding: 24px 16px 48px; border-top: 1px solid var(--line); }
 .scroll-sentinel { height: 1px; width: 100%; }
