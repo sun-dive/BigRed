@@ -3,6 +3,10 @@
   /* BigRed accent: deep-red FILLS (--accent) carry white text (--accent-fg); a brighter red (--link) is used
      for text + borders on the dark background, where the deep red alone would be too low-contrast. */
   --accent: #e01e28; --accent-fg: #ffffff; --link: #ff5d5d;
+  /* CTA colour for the primary purchase actions — red reads as "danger/stop", the wrong signal on a Buy button.
+     Red stays the brand/identity colour (logo, links, active filters); the buy/list actions use a glowing-ember
+     orange (on-theme with the Fire Horse, and a proven high-converting CTA) with near-black text for contrast. */
+  --cta: #ff7518; --cta-fg: #2a1000;
 }
 * { box-sizing: border-box; }
 body {
@@ -80,7 +84,7 @@ main { max-width: 1080px; margin: 0 auto; padding: 0 16px 48px; }
 .card .price { font-weight: 600; font-size: 14px; }
 .card .price .sub { display: block; color: var(--muted); font-weight: 400; font-size: 11px; margin-top: 1px; }
 .card .buy {
-  background: var(--accent); color: var(--accent-fg); font-weight: 600; font-size: 13px;
+  background: var(--cta); color: var(--cta-fg); font-weight: 700; font-size: 13px;
   padding: 7px 12px; border-radius: 8px; white-space: nowrap;
 }
 .card .copylink {
@@ -98,8 +102,8 @@ main { max-width: 1080px; margin: 0 auto; padding: 0 16px 48px; }
 .sell h2 { margin: 0 0 6px; font-size: 18px; }
 .sell p { margin: 0 auto; color: var(--muted); font-size: 14px; max-width: 52ch; }
 .sell-cta {
-  display: inline-block; margin: 14px 0 4px; background: var(--accent); color: var(--accent-fg);
-  font-weight: 600; font-size: 14px; padding: 10px 18px; border-radius: 10px;
+  display: inline-block; margin: 14px 0 4px; background: var(--cta); color: var(--cta-fg);
+  font-weight: 700; font-size: 14px; padding: 10px 18px; border-radius: 10px;
 }
 .sell-key { font-size: 12px !important; margin-top: 12px !important; }
 .sell-key code { word-break: break-all; color: var(--fg); font-size: 11px; }
