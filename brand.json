@@ -1,0 +1,24 @@
+{
+  "wordmark": "nft.sale",
+  "lightning": true,
+  "tagline": "Buy with <b>1 click</b>, <b>Instant delivery!</b>",
+  "howto": "Browse curated Smart NFT editions, then mint your own copy, on-chain — no account, no middleman.",
+  "sellHeading": "Got a SMART NFT? Sell it here.",
+  "sellText": "List your edition for one-click resale on nft.sale — you keep earning your publisher fee on every sale.",
+  "footer": [
+    "<b>BIGRED</b> — <b>B</b>uy <b>I</b>nstantly <b>G</b>enuine <b>R</b>esellable <b>E</b>dition <b>D</b>rops",
+    "🐎 after the champion, Phar Lap."
+  ],
+  "colors": {
+    "bg": "#0d1117",
+    "panel": "#161b22",
+    "line": "#30363d",
+    "fg": "#e6edf3",
+    "muted": "#8b949e",
+    "accent": "#e01e28",
+    "accent-fg": "#ffffff",
+    "link": "#ff5d5d",
+    "cta": "#ff7518",
+    "cta-fg": "#2a1000"
+  }
+}

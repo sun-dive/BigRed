@@ -255,4 +255,25 @@ function render (data) {
   }
 }
 
+/* Theme layer — apply the site's identity from brand.json (colours + all header/footer text), so a niche BigRed
+ * fork is a one-file re-theme. The HTML carries the flagship values as a no-JS/crawler fallback; this overrides
+ * them. Head <title>/<meta> stay static in index.html (crawlers don't run JS — edit those per fork for social). */
+async function applyBrand () {
+  let b
+  try { b = await (await fetch('brand.json', { cache: 'no-cache' })).json() } catch { return } // keep the HTML fallback
+  if (b.colors) { const s = document.documentElement.style; for (const k in b.colors) s.setProperty('--' + k, b.colors[k]) }
+  const set = (sel, html) => { const el = document.querySelector(sel); if (el != null && html != null) el.innerHTML = html }
+  const brand = document.querySelector('.brand')
+  if (brand && b.wordmark != null) {
+    brand.innerHTML = '<img class="brand-horse" src="brand/favicon.svg" alt="" />' + (b.lightning ? '⚡ ' : '') + b.wordmark
+  }
+  set('.tagline', b.tagline)
+  set('.howto', b.howto)
+  set('.sell h2', b.sellHeading)
+  set('#sellText', b.sellText)
+  const fl = document.querySelectorAll('.site-foot .flavour')
+  if (Array.isArray(b.footer)) b.footer.forEach((t, i) => { if (fl[i] && t != null) fl[i].innerHTML = t })
+}
+
+applyBrand()
 load()
