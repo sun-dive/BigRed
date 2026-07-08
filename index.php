@@ -73,6 +73,7 @@
     <a href="https://whatsonchain.com" target="_blank" rel="noopener" aria-label="Powered by WhatsOnChain">
       <img src="brand/powered-by-whatsonchain-white.svg" alt="Powered by WhatsOnChain" class="woc-badge" />
     </a>
+    <a class="bb-badge" href="https://bananablocks.com" target="_blank" rel="noopener" aria-label="Powered by BananaBlocks">Powered by <img src="brand/bananablocks-logo.png" alt="" class="bb-logo" /> <span class="bb-word">BananaBlocks</span></a>
     <p>Checkout is powered by <a href="https://smartnfts.com" target="_blank" rel="noopener">SMART NFTs</a> on the Bitcoin SV blockchain.</p>
     <p class="flavour"><b>BIGRED</b> — <b>B</b>uy <b>I</b>nstantly <b>G</b>enuine <b>R</b>esellable <b>E</b>dition <b>D</b>rops</p>
     <p class="flavour">🐎 after the champion, Phar Lap.</p>
