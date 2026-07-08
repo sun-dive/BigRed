@@ -257,10 +257,12 @@ function render (data) {
 
 /* Theme layer — apply the site's identity from brand.json (colours + all header/footer text), so a niche BigRed
  * fork is a one-file re-theme. The HTML carries the flagship values as a no-JS/crawler fallback; this overrides
- * them. Head <title>/<meta> stay static in index.html (crawlers don't run JS — edit those per fork for social). */
+ * them. The per-host <head> <title>/<meta> (crawlers don't run JS) is handled server-side in index.php. */
 async function applyBrand () {
   let b
-  try { b = await (await fetch('brand.json', { cache: 'no-cache' })).json() } catch { return } // keep the HTML fallback
+  // Same deployment serves nft.sale and its mirror NFTsale.com; pick the brand config by hostname.
+  const brandFile = location.hostname.includes('nftsale.com') ? 'brand.nftsale.json' : 'brand.json'
+  try { b = await (await fetch(brandFile, { cache: 'no-cache' })).json() } catch { return } // keep the HTML fallback
   if (b.colors) { const s = document.documentElement.style; for (const k in b.colors) s.setProperty('--' + k, b.colors[k]) }
   const set = (sel, html) => { const el = document.querySelector(sel); if (el != null && html != null) el.innerHTML = html }
   const brand = document.querySelector('.brand')

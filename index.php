@@ -1,23 +1,38 @@
+<?php
+  // Host-aware <head>: one deployment serves nft.sale and its mirror NFTsale.com. Crawlers don't run JS, so the
+  // per-domain title + social image are branched here (the visible page is themed client-side by app.js from
+  // brand.json / brand.nftsale.json). Everything below <body> is identical for both hosts.
+  $host    = $_SERVER['HTTP_HOST'] ?? 'nft.sale';
+  $nftsale = strpos($host, 'nftsale.com') !== false;
+  $name    = $nftsale ? 'NFTsale.com' : 'nft.sale';
+  $base    = $nftsale ? 'https://nftsale.com' : 'https://nft.sale';
+  $title   = $nftsale ? 'NFTsale.com — Buy it. Own it. Resell it.' : 'nft.sale — the SMART NFT sales ring';
+  $desc    = $nftsale
+    ? 'Real digital ownership on-chain: buy a copy, keep it, resell it — the creator is paid every time.'
+    : 'Buy your own copy of curated SMART NFT editions in one click, on-chain — no account, no middleman.';
+  $img     = $base . ($nftsale ? '/brand/og-banner-nftsale.jpg' : '/brand/og-banner.jpg');
+  $e = function ($s) { return htmlspecialchars($s, ENT_QUOTES); };
+?>
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>nft.sale — the SMART NFT sales ring</title>
-  <meta name="description" content="The SMART NFT sales ring — buy your own copy of curated editions in one click, on-chain." />
+  <title><?= $e($title) ?></title>
+  <meta name="description" content="<?= $e($desc) ?>" />
   <link rel="icon" type="image/svg+xml" href="brand/favicon.svg" />
   <meta property="og:type" content="website" />
-  <meta property="og:site_name" content="nft.sale" />
-  <meta property="og:title" content="nft.sale — the SMART NFT sales ring" />
-  <meta property="og:description" content="Buy your own copy of curated SMART NFT editions in one click, on-chain — no account, no middleman." />
-  <meta property="og:url" content="https://nft.sale/" />
-  <meta property="og:image" content="https://nft.sale/brand/og-banner.jpg" />
+  <meta property="og:site_name" content="<?= $e($name) ?>" />
+  <meta property="og:title" content="<?= $e($title) ?>" />
+  <meta property="og:description" content="<?= $e($desc) ?>" />
+  <meta property="og:url" content="<?= $e($base) ?>/" />
+  <meta property="og:image" content="<?= $e($img) ?>" />
   <meta property="og:image:width" content="1344" />
   <meta property="og:image:height" content="768" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="nft.sale — the SMART NFT sales ring" />
-  <meta name="twitter:description" content="Buy your own copy of curated SMART NFT editions in one click, on-chain." />
-  <meta name="twitter:image" content="https://nft.sale/brand/og-banner.jpg" />
+  <meta name="twitter:title" content="<?= $e($title) ?>" />
+  <meta name="twitter:description" content="<?= $e($desc) ?>" />
+  <meta name="twitter:image" content="<?= $e($img) ?>" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>

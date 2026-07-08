@@ -10,9 +10,15 @@
 deployment:
   tasks:
     - export DEPLOYPATH="$HOME/nft.sale/"
-    - /bin/cp index.html "$DEPLOYPATH"
+    # index.php is the host-aware entry (branches <head> for nft.sale vs its NFTsale.com mirror). Ship it and
+    # remove any stale static index.html so DirectoryIndex serves the PHP entry.
+    - /bin/cp index.php "$DEPLOYPATH"
+    - /bin/rm -f "$DEPLOYPATH/index.html"
     - /bin/cp style.css "$DEPLOYPATH"
     - /bin/cp app.js "$DEPLOYPATH"
+    # brand.json = nft.sale theme; brand.nftsale.json = the NFTsale.com face (app.js picks by hostname).
+    - /bin/cp brand.json "$DEPLOYPATH"
+    - /bin/cp brand.nftsale.json "$DEPLOYPATH"
     - /bin/cp .htaccess "$DEPLOYPATH"
     - /bin/cp -R brand "$DEPLOYPATH"
     # listings.json + covers/ are owned by the server-side curation cron, which writes them straight into the

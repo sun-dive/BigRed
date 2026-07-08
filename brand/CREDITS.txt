@@ -8,5 +8,10 @@ favicon.svg
   Licensed under CC-BY 4.0 — https://creativecommons.org/licenses/by/4.0/
   Source: https://github.com/twitter/twemoji
 
+og-banner.jpg / og-banner-nftsale.jpg
+  Social share banners. The fire-horse artwork is cropped from the "Book That Sells
+  Itself" cover art (© 2026 SunDive), with the wordmark/tagline composited over it.
+  og-banner.jpg = nft.sale; og-banner-nftsale.jpg = the NFTsale.com mirror.
+
 powered-by-whatsonchain-white.svg
   WhatsOnChain "powered by" badge © WhatsOnChain — used to credit the block explorer.
