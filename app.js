@@ -194,6 +194,7 @@ function buildCard (it, data) {
       (it.description ? `<p class="desc">${escapeHtml(it.description)}</p>` : '') +
       (tags ? `<div class="tags">${tags}</div>` : '') +
       (genesisHtml || soldHtml ? `<div class="badges">${genesisHtml}${soldHtml}</div>` : '') +
+      (it.previewClip ? `<div class="preview" data-clip="${escapeHtml(it.previewClip)}"><button class="preview-btn" type="button">🎧 Preview</button></div>` : '') +
       `<div class="row">` +
         priceHtml +
         `<a class="buy" href="${link}" target="_blank" rel="noopener">Get a copy ↗</a>` +
@@ -214,6 +215,16 @@ function wireCards (grid, data) {
         const orig = b.textContent; b.textContent = '✓ Copied!'; b.classList.add('ok')
         setTimeout(() => { b.textContent = orig; b.classList.remove('ok') }, 1500)
       } catch { window.prompt('Copy this link:', url) }
+    }
+  })
+  // Lazy audio preview: the clip only downloads when a shopper hits play (never preloaded across the catalog).
+  grid.querySelectorAll('.preview-btn').forEach(b => {
+    b.onclick = () => {
+      const wrap = b.closest('.preview'); if (!wrap) return
+      const audio = document.createElement('audio')
+      audio.controls = true; audio.autoplay = true; audio.className = 'preview-audio'
+      audio.src = wrap.dataset.clip
+      wrap.replaceChildren(audio)
     }
   })
 }
