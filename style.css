@@ -76,9 +76,10 @@ main { max-width: 1080px; margin: 0 auto; padding: 0 16px 48px; }
    page). The price row is pinned to the card bottom via margin-top:auto below, so short + long descriptions
    still line their prices up. */
 .card .desc {
-  margin: 0; color: var(--muted); font-size: 13px;
-  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 5; line-clamp: 5;
-  overflow: hidden; text-overflow: ellipsis;
+  /* Clamp to ~5 lines by MAX-HEIGHT, not -webkit-box/-webkit-line-clamp: as a flex-item child, that display
+     collapses the note to zero height in current Chromium/Brave/Firefox — the bug that hid every seller note. */
+  margin: 0; color: var(--muted); font-size: 13px; line-height: 1.4;
+  max-height: 7em; overflow: hidden;
 }
 .card .row { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-top: auto; padding-top: 6px; }
 .card .price { font-weight: 600; font-size: 14px; }
@@ -94,7 +95,7 @@ main { max-width: 1080px; margin: 0 auto; padding: 0 16px 48px; }
 }
 .card .copylink:hover { border-color: var(--link); color: var(--fg); }
 .card .copylink.ok { color: #3fb950; border-color: #3fb950; }
-.card .preview { margin: 6px 0 0; }
+.card .preview { margin: 0 0 8px; }
 .card .preview-btn {
   width: 100%; background: var(--panel); color: var(--fg);
   border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px;

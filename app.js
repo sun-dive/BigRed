@@ -190,11 +190,11 @@ function buildCard (it, data) {
       (it.cover ? `<img loading="lazy" src="${escapeHtml(it.cover)}" alt="${escapeHtml(it.title || '')}" onerror="this.remove()">` : '') +
     `</a>` +
     `<div class="body">` +
+      (it.previewClip ? `<div class="preview" data-clip="${escapeHtml(it.previewClip)}"><button class="preview-btn" type="button">🎧 Preview</button></div>` : '') +
       `<h2>${escapeHtml(it.title || 'Untitled')}</h2>` +
       (it.description ? `<p class="desc">${escapeHtml(it.description)}</p>` : '') +
       (tags ? `<div class="tags">${tags}</div>` : '') +
       (genesisHtml || soldHtml ? `<div class="badges">${genesisHtml}${soldHtml}</div>` : '') +
-      (it.previewClip ? `<div class="preview" data-clip="${escapeHtml(it.previewClip)}"><button class="preview-btn" type="button">🎧 Preview</button></div>` : '') +
       `<div class="row">` +
         priceHtml +
         `<a class="buy" href="${link}" target="_blank" rel="noopener">Get a copy ↗</a>` +
