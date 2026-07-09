@@ -165,6 +165,15 @@ function setTagQuery (data, q, fromSearch) {
   render(data)
 }
 
+/** Human filename for a downloaded preview — the listing title ("Artist - Track.mp3") instead of the
+ *  content-addressed clip url (clips/<id>.<txid>.mp3). Strips characters illegal in filenames. */
+function previewDownloadName (it) {
+  const raw = (String(it.previewClip || '').split('.').pop() || 'mp3').toLowerCase()
+  const ext = ['mp3', 'm4a'].includes(raw) ? raw : 'mp3'
+  const base = (it.title || 'preview').replace(/[\/\\:*?"<>|]+/g, '').replace(/\s+/g, ' ').trim() || 'preview'
+  return `${base}.${ext}`
+}
+
 /** Render the catalog, optionally filtered to a single tag. */
 function buildCard (it, data) {
   const link = listingLink(it.collectionId, data.sitePubKey, data.affRefCode)
@@ -201,7 +210,7 @@ function buildCard (it, data) {
       (it.backCover ? `<button class="cover-flip" type="button" title="Flip cover" aria-label="Flip cover">⟲</button>` : '') +
     `</div>` +
     `<div class="body">` +
-      (it.previewClip ? `<div class="preview" data-clip="${escapeHtml(it.previewClip)}"><button class="preview-btn" type="button">🎧 Preview</button></div>` : '') +
+      (it.previewClip ? `<div class="preview" data-clip="${escapeHtml(it.previewClip)}" data-dl="${escapeHtml(previewDownloadName(it))}"><button class="preview-btn" type="button">🎧 Preview</button></div>` : '') +
       `<h2>${escapeHtml(it.title || 'Untitled')}</h2>` +
       (it.description ? `<p class="desc">${escapeHtml(it.description)}</p>` : '') +
       (tags ? `<div class="tags">${tags}</div>` : '') +
@@ -245,8 +254,14 @@ function wireCards (grid, data) {
       const wrap = b.closest('.preview'); if (!wrap) return
       const audio = document.createElement('audio')
       audio.controls = true; audio.autoplay = true; audio.className = 'preview-audio'
+      audio.setAttribute('controlsList', 'nodownload') // hide the native download — it uses the ugly clip-id url
       audio.src = wrap.dataset.clip
-      wrap.replaceChildren(audio)
+      // Our own download link so the file saves as the listing title ("Artist - Track.mp3"), not the id. The
+      // clip is same-origin, so the download attribute's filename is honoured.
+      const dl = document.createElement('a')
+      dl.className = 'preview-dl'; dl.href = wrap.dataset.clip; dl.download = wrap.dataset.dl || ''
+      dl.textContent = '⬇ Download'; dl.title = 'Download the preview clip'
+      wrap.replaceChildren(audio, dl)
     }
   })
 }
