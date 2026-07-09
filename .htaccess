@@ -1,10 +1,10 @@
 # Serve the host-aware PHP entry first (it branches the <head> per domain: nft.sale vs its NFTsale.com mirror).
 DirectoryIndex index.php index.html
 
-# Cache policy (Apache / Namecheap cPanel). Covers are content-addressed by collection id → cache hard;
-# the page/script/catalog are short-cached so curation edits propagate.
+# Cache policy (Apache / Namecheap cPanel). Covers AND preview clips are content-addressed (cover by collection
+# id, clips by preview txid) → cache hard; the page/script/catalog are short-cached so curation edits propagate.
 <IfModule mod_headers.c>
-  <FilesMatch "\.(jpg|jpeg|png|webp|gif|svg)$">
+  <FilesMatch "\.(jpg|jpeg|png|webp|gif|svg|mp3|m4a)$">
     Header set Cache-Control "public, max-age=31536000, immutable"
   </FilesMatch>
   <FilesMatch "\.(html|css|js|json)$">
