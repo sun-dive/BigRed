@@ -186,11 +186,14 @@ function buildCard (it, data) {
   const card = document.createElement('article')
   card.className = 'card'
   card.innerHTML =
-    `<div class="cover-box">` +
-      `<a class="cover" href="${link}" target="_blank" rel="noopener">` +
-        (it.cover ? `<img loading="lazy" class="cover-img" src="${escapeHtml(it.cover)}"${it.backCover ? ` data-front="${escapeHtml(it.cover)}" data-back="${escapeHtml(it.backCover)}"` : ''} alt="${escapeHtml(it.title || '')}" onerror="this.remove()">` : '') +
-      `</a>` +
-      (it.backCover ? `<button class="cover-flip" type="button" title="Flip to back cover" aria-label="Flip to back cover">⟲</button>` : '') +
+    `<div class="cover-box${it.backCover ? ' has-back' : ''}">` +
+      `<div class="cover-inner">` +
+        `<a class="cover cover-front" href="${link}" target="_blank" rel="noopener">` +
+          (it.cover ? `<img loading="lazy" src="${escapeHtml(it.cover)}" alt="${escapeHtml(it.title || '')}" onerror="this.remove()">` : '') +
+        `</a>` +
+        (it.backCover ? `<div class="cover-back"><img class="cover-back-img" data-src="${escapeHtml(it.backCover)}" alt="" /></div>` : '') +
+      `</div>` +
+      (it.backCover ? `<button class="cover-flip" type="button" title="Flip cover" aria-label="Flip cover">⟲</button>` : '') +
     `</div>` +
     `<div class="body">` +
       (it.previewClip ? `<div class="preview" data-clip="${escapeHtml(it.previewClip)}"><button class="preview-btn" type="button">🎧 Preview</button></div>` : '') +
@@ -220,14 +223,15 @@ function wireCards (grid, data) {
       } catch { window.prompt('Copy this link:', url) }
     }
   })
-  // Cover flip: toggle the cover image between front and back (back-cover loads lazily on first flip).
+  // Cover flip: an animated 3D flip toggled by the .flipped class — the rotation gives instant feedback while
+  // the (large) back image downloads. The back image is lazy-loaded on the first flip.
   grid.querySelectorAll('.cover-flip').forEach(b => {
+    const box = b.closest('.cover-box')
+    if (!box) return
+    const backImg = box.querySelector('.cover-back-img')
     b.onclick = () => {
-      const img = b.closest('.cover-box')?.querySelector('.cover-img')
-      if (!img || !img.dataset.back) return
-      const toBack = img.dataset.showing !== 'back'
-      img.src = toBack ? img.dataset.back : img.dataset.front
-      img.dataset.showing = toBack ? 'back' : 'front'
+      if (backImg && !backImg.getAttribute('src') && backImg.dataset.src) backImg.src = backImg.dataset.src
+      box.classList.toggle('flipped')
     }
   })
   // Lazy audio preview: the clip only downloads when a shopper hits play (never preloaded across the catalog).
