@@ -12,6 +12,10 @@
 const SMARTNFTS = 'https://smartnfts.com'
 let CURRENT_CAT = null // active content-type category filter (null = all)
 let TAG_QUERY = ''     // active hashtag filter (substring; set by the search box or a popular-tag chip)
+// A shared short link redirects to /?n=<slug>, which spotlights that one NFT here (instead of bouncing straight
+// to the slow checkout). The buy still happens on smartnfts.com — but only when the visitor clicks "Get a copy".
+let FOCUS_SLUG = new URLSearchParams(location.search).get('n') || ''
+let FOCUSED = null // the resolved spotlighted listing (or null when there's no /?n= or it doesn't match)
 
 // Content-type categories — same taxonomy as Phar Lap's "My NFTs". Each listing's `category` key is written by
 // the curator (from the NFT's on-chain content MIME); the chip row shows only categories that are present.
@@ -86,6 +90,7 @@ async function load () {
   const sortSel = document.getElementById('sort')
   if (sortbar && sortSel) { sortbar.hidden = false; sortSel.onchange = () => render(data) }
 
+  renderFocus(data) // must run before render(): sets FOCUSED so the grid can lead with tag-matches
   render(data)
 }
 
@@ -246,6 +251,36 @@ function wireCards (grid, data) {
   })
 }
 
+/** How many of `it`'s tags are in the spotlighted NFT's tag set — drives "more like this" ordering. */
+function sharedTags (it, tagSet) { let n = 0; for (const t of it.tags || []) if (tagSet.has(t.toLowerCase())) n++; return n }
+
+/** Spotlight the shared NFT (from /?n=<slug>) as a large highlighted hero above the catalog. Reuses buildCard
+ *  (so flip / preview / copy-link / Get-a-copy all work) but renders it large with the full, unclamped
+ *  description. Rendered once per page load; the grid below re-renders freely on filter/sort without disturbing
+ *  it. A "Browse all" button dismisses the spotlight and clears the ?n= param. */
+function renderFocus (data) {
+  const main = document.querySelector('main')
+  const existing = document.getElementById('focus')
+  FOCUSED = FOCUS_SLUG
+    ? (data.listings || []).find(it => it.slug === FOCUS_SLUG || it.collectionId === FOCUS_SLUG || (it.collectionId || '').slice(0, 8) === FOCUS_SLUG)
+    : null
+  if (!FOCUSED) { if (existing) existing.remove(); return } // stale/absent link → just show the full catalog
+  const host = existing || document.createElement('section')
+  host.id = 'focus'; host.className = 'focus'
+  if (!existing) main.insertBefore(host, main.firstChild) // very top of the content area
+  host.innerHTML = '<div class="focus-head"><span class="focus-badge">★ Shared with you</span>' +
+    '<button class="focus-close" type="button">✕ Browse all listings</button></div>'
+  host.appendChild(buildCard(FOCUSED, data))
+  wireCards(host, data)
+  host.querySelector('.focus-close').onclick = () => {
+    FOCUS_SLUG = ''; FOCUSED = null
+    history.replaceState(null, '', location.pathname + location.hash) // drop ?n= so a refresh shows everything
+    host.remove()
+    render(data)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+}
+
 // Endless scroll: render the catalog in batches, adding more as a sentinel scrolls into view (à la IG/TikTok).
 const SCROLL_BATCH = 12
 let scrollObs = null
@@ -254,11 +289,20 @@ function render (data) {
   renderTagbar(data)
   const grid = document.getElementById('grid')
   const q = TAG_QUERY.toLowerCase()
-  const items = (data.listings || []).filter(it =>
+  let items = (data.listings || []).filter(it =>
     (CURRENT_CAT == null || (it.category || 'other') === CURRENT_CAT) &&
     (q === '' || (it.tags || []).some(t => t.toLowerCase().includes(q)))
   )
-  sortListings(items)
+  if (FOCUSED) {
+    // Spotlight is up: drop the shared NFT from the grid and lead with listings that share its tags
+    // ("more like this"), then the rest of the catalog. Stable sort keeps the base order within each tier.
+    const ftags = new Set((FOCUSED.tags || []).map(t => t.toLowerCase()))
+    items = items.filter(it => it !== FOCUSED)
+    sortListings(items)
+    items.sort((a, b) => sharedTags(b, ftags) - sharedTags(a, ftags))
+  } else {
+    sortListings(items)
+  }
   if (scrollObs) { scrollObs.disconnect(); scrollObs = null }
   document.querySelectorAll('.scroll-sentinel').forEach(s => s.remove())
   if (items.length === 0) { grid.innerHTML = '<p class="empty">Nothing matches — try clearing the filters.</p>'; return }
