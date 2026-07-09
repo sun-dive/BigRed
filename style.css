@@ -68,8 +68,15 @@ main { max-width: 1080px; margin: 0 auto; padding: 0 16px 48px; }
 .empty code { background: var(--panel); border: 1px solid var(--line); border-radius: 5px; padding: 1px 5px; }
 
 .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
+.card .cover-box { position: relative; }
 .card .cover { display: block; aspect-ratio: 1 / 1; background: #0b0e13; }
 .card .cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.card .cover-flip {
+  position: absolute; bottom: 8px; right: 8px; z-index: 2; width: 30px; height: 30px;
+  border-radius: 999px; border: 1px solid rgba(255,255,255,.25); background: rgba(0,0,0,.55);
+  color: #fff; font-size: 15px; line-height: 1; cursor: pointer; backdrop-filter: blur(4px);
+}
+.card .cover-flip:hover { background: rgba(0,0,0,.75); }
 .card .body { padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
 .card h2 { margin: 0; font-size: 16px; }
 /* Clamp long descriptions to ~5 lines so every card is a uniform height (the full text lives on the listing
