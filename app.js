@@ -97,6 +97,12 @@ async function load () {
 /** Buyer's all-in cost (covenant fees + refundable bond), for price sorting. */
 function priceOf (it) { return Number(it.priceSats || 0) + Number(it.bondSats || 0) }
 
+/** Readable price: large amounts as BSV (0.485 BSV / 1.25 BSV, ≥ 0.01 BSV), small ones as whole sats. */
+function fmtPrice (sats) {
+  const s = Math.round(Number(sats) || 0)
+  return s >= 1000000 ? (s / 1e8).toFixed(3).replace(/\.?0+$/, '') + ' BSV' : s.toLocaleString() + ' sats'
+}
+
 /** Sort listings in place by the active sort mode. "Most sold" leads with bestsellers, newest breaks ties. */
 function sortListings (items) {
   const sel = document.getElementById('sort')
@@ -180,9 +186,9 @@ function buildCard (it, data) {
   // Real cost to a buyer = the covenant fees + the refundable bond locked into their own copy, + network fee.
   const fees = Number(it.priceSats || 0)
   const bond = Number(it.bondSats || 0)
-  const sub = (bond > 1 ? `incl. ${bond.toLocaleString()} refundable bond · ` : '') + '+ network fee'
+  const sub = (bond > 1 ? `incl. ${fmtPrice(bond)} refundable bond · ` : '') + '+ network fee'
   const priceHtml = it.priceSats != null
-    ? `<span class="price">${(fees + bond).toLocaleString()} sats<span class="sub">${sub}</span></span>`
+    ? `<span class="price" title="${(fees + bond).toLocaleString()} sats">${fmtPrice(fees + bond)}<span class="sub">${sub}</span></span>`
     : '<span></span>'
   const tags = (it.tags || []).map(t => `<button class="tag" data-tag="${escapeHtml(t)}">#${escapeHtml(t)}</button>`).join('')
   // Validated-genesis badge: the curator verified this descends from its genesis mint and recorded the issue
