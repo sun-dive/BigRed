@@ -91,6 +91,9 @@ main { max-width: 1080px; margin: 0 auto; padding: 0 16px 48px; }
 .card .cover-flip:hover { background: rgba(0,0,0,.75); }
 .card .body { padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
 .card h2 { margin: 0; font-size: 16px; }
+.card h2 a { color: inherit; text-decoration: none; cursor: pointer; }
+.card h2 a:hover { color: var(--link); }
+.card .cover { cursor: pointer; }
 /* Clamp long descriptions to ~5 lines so every card is a uniform height (the full text lives on the listing
    page). The price row is pinned to the card bottom via margin-top:auto below, so short + long descriptions
    still line their prices up. */

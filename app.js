@@ -16,6 +16,8 @@ let TAG_QUERY = ''     // active hashtag filter (substring; set by the search bo
 // to the slow checkout). The buy still happens on smartnfts.com — but only when the visitor clicks "Get a copy".
 let FOCUS_SLUG = new URLSearchParams(location.search).get('n') || ''
 let FOCUSED = null // the resolved spotlighted listing (or null when there's no /?n= or it doesn't match)
+let FOCUS_SHARED = true // opened via a shared/direct ?n= link (true) vs a card click (false) — tweaks the badge
+let CATALOG = null // the loaded listings, kept for back/forward (popstate) redraws
 
 // Content-type categories — same taxonomy as Phar Lap's "My NFTs". Each listing's `category` key is written by
 // the curator (from the NFT's on-chain content MIME); the chip row shows only categories that are present.
@@ -183,6 +185,10 @@ function previewDownloadName (it) {
 /** Render the catalog, optionally filtered to a single tag. */
 function buildCard (it, data) {
   const link = listingLink(it.collectionId, data.sitePubKey, data.affRefCode)
+  // Clicking the cover/title opens the on-site spotlight (full sales note) rather than jumping to checkout; the
+  // href is a real /?n= url (so open-in-new-tab / share still work), intercepted for an in-place open.
+  const openKey = it.slug || it.collectionId
+  const openHref = '/?n=' + encodeURIComponent(openKey)
   // Real cost to a buyer = the covenant fees + the refundable bond locked into their own copy, + network fee.
   const fees = Number(it.priceSats || 0)
   const bond = Number(it.bondSats || 0)
@@ -208,7 +214,7 @@ function buildCard (it, data) {
   card.innerHTML =
     `<div class="cover-box${it.backCover ? ' has-back' : ''}">` +
       `<div class="cover-inner">` +
-        `<a class="cover cover-front" href="${link}" target="_blank" rel="noopener">` +
+        `<a class="cover cover-front" href="${openHref}" data-open="${escapeHtml(openKey)}">` +
           (it.cover ? `<img loading="lazy" src="${escapeHtml(it.cover)}" alt="${escapeHtml(it.title || '')}" onerror="this.remove()">` : '') +
         `</a>` +
         (it.backCover ? `<div class="cover-back"><img class="cover-back-img" data-src="${escapeHtml(it.backCover)}" alt="" /></div>` : '') +
@@ -217,7 +223,7 @@ function buildCard (it, data) {
     `</div>` +
     `<div class="body">` +
       (it.previewClip ? `<div class="preview" data-clip="${escapeHtml(it.previewClip)}" data-dl="${escapeHtml(previewDownloadName(it))}"><button class="preview-btn" type="button">🎧 Preview</button></div>` : '') +
-      `<h2>${escapeHtml(it.title || 'Untitled')}</h2>` +
+      `<h2 class="card-title"><a href="${openHref}" data-open="${escapeHtml(openKey)}">${escapeHtml(it.title || 'Untitled')}</a></h2>` +
       (it.description ? `<p class="desc">${escapeHtml(it.description)}</p>` : '') +
       (tags ? `<div class="tags">${tags}</div>` : '') +
       (genesisHtml || soldHtml ? `<div class="badges">${genesisHtml}${soldHtml}</div>` : '') +
@@ -233,6 +239,15 @@ function buildCard (it, data) {
 // Wire the interactive bits on the cards now in the grid (idempotent — onclick assignment overwrites).
 function wireCards (grid, data) {
   grid.querySelectorAll('.tag').forEach(b => { b.onclick = () => setTagQuery(data, b.dataset.tag) }) // tap a card tag to filter
+  // Cover / title → open the on-site spotlight in place (full sales note), instead of jumping to checkout. The
+  // href stays a real /?n= url, so Ctrl/⌘-click or middle-click still open it in a new tab.
+  grid.querySelectorAll('[data-open]').forEach(el => {
+    el.onclick = e => {
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1) return // let new-tab clicks through
+      e.preventDefault()
+      openFocus(data, el.dataset.open)
+    }
+  })
   grid.querySelectorAll('.copylink').forEach(b => {
     b.onclick = async () => {
       const url = b.dataset.url
@@ -289,7 +304,7 @@ function renderFocus (data) {
   const host = existing || document.createElement('section')
   host.id = 'focus'; host.className = 'focus'
   if (!existing) main.insertBefore(host, main.firstChild) // very top of the content area
-  host.innerHTML = '<div class="focus-head"><span class="focus-badge">★ Shared with you</span>' +
+  host.innerHTML = `<div class="focus-head"><span class="focus-badge">${FOCUS_SHARED ? '★ Shared with you' : '★ Now viewing'}</span>` +
     '<button class="focus-close" type="button">✕ Browse all listings</button></div>'
   host.appendChild(buildCard(FOCUSED, data))
   wireCards(host, data)
@@ -302,10 +317,22 @@ function renderFocus (data) {
   }
 }
 
+// Open a listing's on-site spotlight in place (from a card click). A real /?n= url is pushed so Back returns to
+// the grid; buying still happens on smartnfts.com via the spotlight's "Get a copy".
+function openFocus (data, key) {
+  if (!key) return
+  FOCUS_SLUG = key; FOCUS_SHARED = false
+  history.pushState({ n: key }, '', '/?n=' + encodeURIComponent(key))
+  renderFocus(data)
+  render(data)
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
 // Endless scroll: render the catalog in batches, adding more as a sentinel scrolls into view (à la IG/TikTok).
 const SCROLL_BATCH = 12
 let scrollObs = null
 function render (data) {
+  CATALOG = data // keep a handle for back/forward redraws
   renderCats(data)
   renderTagbar(data)
   const grid = document.getElementById('grid')
@@ -369,6 +396,15 @@ async function applyBrand () {
   const fl = document.querySelectorAll('.site-foot .flavour')
   if (Array.isArray(b.footer)) b.footer.forEach((t, i) => { if (fl[i] && t != null) fl[i].innerHTML = t })
 }
+
+// Back/forward between the grid and a spotlight (?n=) — resync the view from the URL.
+window.addEventListener('popstate', () => {
+  if (!CATALOG) return
+  FOCUS_SLUG = new URLSearchParams(location.search).get('n') || ''; FOCUS_SHARED = false
+  renderFocus(CATALOG)
+  render(CATALOG)
+  window.scrollTo({ top: 0 })
+})
 
 applyBrand()
 load()
