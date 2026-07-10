@@ -70,7 +70,10 @@ main { max-width: 1080px; margin: 0 auto; padding: 0 16px 48px; }
 .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
 .card .cover-box { position: relative; }
 .card .cover { display: block; aspect-ratio: 1 / 1; background: #0b0e13; }
-.card .cover img, .card .cover-back img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.card .cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* The BACK is shown WHOLE (contain), not cropped: it's typically a text-heavy blurb at book proportions, so
+   cropping to the square card would cut the text. A portrait/landscape back letterboxes on the dark face. */
+.card .cover-back img { width: 100%; height: 100%; object-fit: contain; display: block; }
 /* Back-cover 3D flip (only cards with a back cover). The rotation animates so the flip gives instant feedback
    while the large back image downloads. */
 .card .cover-box.has-back { perspective: 900px; }
