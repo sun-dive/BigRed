@@ -149,7 +149,9 @@ main { max-width: 1080px; margin: 0 auto; padding: 0 16px 48px; }
 @media (min-width: 680px) {
   .focus .card { flex-direction: row; gap: 20px; align-items: stretch; }
   .focus .card .cover-box { width: 320px; flex: none; align-self: flex-start; }
-  .focus .card .cover, .focus .card .cover-box.has-back .cover-inner { border-radius: 12px; overflow: hidden; }
+  /* Round the two flip FACES, never .cover-inner — overflow:hidden on the preserve-3d element flattens the 3D
+     context, breaking backface-visibility (the flipped front then shows mirrored). */
+  .focus .card .cover, .focus .card .cover-back { border-radius: 12px; overflow: hidden; }
   .focus .card .body { padding: 4px 4px 4px 0; }
 }
 
