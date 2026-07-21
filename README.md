@@ -3,10 +3,18 @@
 > Codename **`bigred`** (after Phar Lap's nickname); public brand **nft.sale**. Phar Lap is the wallet you
 > stable him in; Big Red is the ring where he's sold.
 
-A **static** content-listing / resale site for [SMART NFTs](https://smartnfts.com) (Phar Lap) editions.
-It curates editions and links to the SMART NFTs sales page for one-click checkout. The site holds a copy of
-each listed edition (as a reseller) and **earns the covenant-enforced reseller fee on every sale it drives** —
-with **no live wallet** (it never signs; it earns passively).
+A **static** content-listing / resale site for [SMART NFTs](https://smartnfts.com) (Phar Lap editions) — including
+**Block Media Format** media atoms and BMC sets. It curates editions and links to the SMART NFTs sales page for
+one-click checkout. The site holds a copy of each listed edition (as a reseller) and **earns the
+covenant-enforced reseller fee on every sale it drives** — with **no live wallet** (it never signs; it earns
+passively). Owned, not claimed.
+
+Big Red is the **sell** corner of the trinity: **[Phar Lap](https://smartnfts.com)** (own/mint) · **Big Red**
+(sell) · **[Pole Position](https://github.com/sun-dive/PolePosition)** (create).
+
+**Big Red is open — run your own.** Anyone can stand up a Big Red site; each is a self-owned reseller that earns
+the covenant reseller fee on the sales it drives. Expect many — niche catalogs curated for different audiences.
+See **Run your own**, below.
 
 The catalog is **auto-curated**: the **cold site wallet IS the registry**. A publisher onboards a copy of their
 edition to the site wallet, and a **server-side cron** scans the wallet's held editions and auto-writes
@@ -22,17 +30,17 @@ edition to the site wallet, and a **server-side cron** scans the wallet's held e
 - `covers/` — cover images (written by the curator; cached hard by the CDN/host).
 - `r/` — short-link redirect pages (`nft.sale/r/<slug>`), each with Open Graph / Twitter Card tags for rich
   previews. Also written by the curator.
-- `.htaccess` — cache headers for Namecheap/Apache.
+- `.htaccess` — cache headers + a CORS allowance so the smartnfts.com sales page can fast-paint from this catalog.
 
 ## One-time setup
 1. **Create the site's wallet, cold.** In Phar Lap (smartnfts.com) → **New wallet** (ideally offline). Write the
-   seed down and keep it OFFLINE. Copy the **Public key**. That pubkey is the site's identity here.
+   seed down and keep it OFFLINE. Copy the **Public key** — that pubkey is the site's identity here.
    - **Never** put the site's seed / WIF on the server or in this repo. Only the *public* key goes in
      `listings.json`.
 2. Set `sitePubKey` in `listings.json` to that public key. (The curator reuses this file's `sitePubKey` /
    `affRefCode`; it only overwrites the `listings` array + `covers/`.)
-3. *(Optional)* set `affRefCode` to your Orange Gateway referral code → buyers who fund up via your links also
-   earn you the signup referral.
+3. *(Optional)* set `affRefCode` to your **SimpleSwap** referral code → buyers who fund up with BSV via your
+   links also earn you the signup referral.
 4. Stand up the **curation cron** on the server (a bundled curator that scans the site wallet and writes
    `listings.json` + `covers/` into the web root). Setup lives in **SERVER_CURATION.md** in the Phar Lap repo.
 
@@ -40,7 +48,8 @@ edition to the site wallet, and a **server-side cron** scans the wallet's held e
 There is **no manual editing** — the site wallet is the registry, and the cron does the rest.
 1. **Publish your seller note first.** In Phar Lap, on the edition's card, set/publish the on-chain **seller
    note** (heading → listing title, text → description, tags → category tags). Do this *before* onboarding so it's
-   propagated by the time the copy lands.
+   propagated by the time the copy lands. The note is authored by your **identity wallet** and stays yours to
+   update any time — re-publish to re-tag or re-title a listing, across every site that lists you.
 2. **Onboard a copy** to the site wallet — either in Phar Lap via **🤝 Onboard partner** (paste the site's
    `sitePubKey`), or from the site's **"Sell here"** deep link (`smartnfts.com/#list=<sitePubKey>`), which opens
    the wallet ready to send a copy.
@@ -56,13 +65,28 @@ fail covenant verification are hidden.
 The page is purely static — browsing makes **zero** blockchain calls — but the curator bakes in a lot:
 - **Validated-genesis badge** — each card shows a **✓ Genesis · issued &lt;date&gt;** pill linking to
   WhatsOnChain, verified at curation time. Listings that fail covenant verification never appear.
-- **Sales tracking + sort** — each card shows a **🔥 N sold** count (copies sold through the site, counted from
-  the site wallet's replicate history), plus a **Sort** control (Most sold / Newest / Price low↔high).
+- **🎧 Free preview** — music listings get a lazy "listen before you buy" clip player (an on-chain seller-note
+  preview when present, else an auto-sliced 30s cover for MP3 content).
+- **⟲ Back-cover flip** — listings minted with a back cover get an animated 3D card flip (front ⇄ back).
+- **Sales tracking + sort** — each card shows a **🔥 N sold** count (copies sold through the site, from the site
+  wallet's replicate history), plus a **Sort** control (Most sold / Newest / Price low↔high).
 - **Short links + rich previews** — static redirect pages at `nft.sale/r/<slug>` (and a hex code) carry Open
-  Graph / Twitter Card tags so shared links render rich previews. Each card has a **🔗 Copy share link** button.
+  Graph / Twitter Card tags so shared links render rich previews, plus an on-site **spotlight** view
+  (`/?n=<slug>`). Each card has a **🔗 Copy share link** button.
+- **Fast checkout hand-off** — the "Get a copy" link passes `&src=<host>` so the smartnfts.com sales page paints
+  this catalog's cached cover/title/description instantly, instead of waiting on the chain.
 - **Category tag filters** + **infinite scroll** (progressive card rendering).
 - **"Sell here"** publisher onboarding — links to `smartnfts.com/#list=<sitePubKey>`, opening the wallet ready to
   onboard a copy (plus the raw pubkey to paste into **Onboard partner**).
+
+## Run your own — especially publishers
+
+Big Red is meant to be forked. For a **content publisher**, running your own is an **owned distribution
+channel**: a self-hosted catalog of your work, on a domain **you** control, with built-in **shareable short
+links + rich social previews** (`your.domain/r/<slug>`, Open Graph / Twitter cards) — the easy, on-brand way to
+push your releases across social media instead of relying on someone else's site. You also **capture the reseller
+fee on your own sales** (your site is the reseller) on top of the publisher fee, and keep full control of the
+storefront — theme, curation, and which editions appear. It's static, cheap to host, and needs no live wallet.
 
 ## Deploy (Namecheap / cPanel)
 Upload the folder contents to `public_html` (or your domain/subdomain's docroot) via cPanel File Manager, FTP,
@@ -74,6 +98,11 @@ browsing makes **zero** blockchain calls; checkout happens on smartnfts.com. The
 The site earns the reseller fee passively to `sitePubKey`. To monitor: load the **public key** in Phar Lap's
 **👁 Watch a wallet** (watch-only, no key). To withdraw: sign a sweep on your offline machine via the
 **air-gapped signing** flow. The private key never needs to touch the server.
+
+## Ecosystem
+- **[Phar Lap](https://smartnfts.com)** — the SMART NFT wallet + covenant mint engine ([repo](https://github.com/sun-dive/PharLap)).
+- **[Pole Position](https://github.com/sun-dive/PolePosition)** — the create/authoring studio (ebooks, music, Block Media Format).
+- **[Block Media Format](https://github.com/sun-dive/block-media-format)** — the open BMF/BMC spec (proposed BRC-145); Big Red lists BMF atoms and BMC sets like any other SMART NFT.
 
 ## License
 © 2026 sun-dive. Licensed under the **Open BSV License Version 6** — see [LICENSE](./LICENSE). © BSV Association.
