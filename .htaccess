@@ -10,4 +10,9 @@ DirectoryIndex index.php index.html
   <FilesMatch "\.(html|css|js|json)$">
     Header set Cache-Control "public, max-age=300, must-revalidate"
   </FilesMatch>
+  # Let the smartnfts.com sales page read the catalog cross-origin as a display cache (fast first paint of the
+  # cover/title/description instead of waiting on the chain). Public read-only catalog data → wildcard is safe.
+  <FilesMatch "\.json$">
+    Header set Access-Control-Allow-Origin "*"
+  </FilesMatch>
 </IfModule>

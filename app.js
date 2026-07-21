@@ -37,7 +37,10 @@ function escapeHtml (s) {
 
 function listingLink (collectionId, sitePubKey, affRefCode) {
   const aff = affRefCode ? `&aff=${encodeURIComponent(affRefCode)}` : ''
-  return `${SMARTNFTS}/#c=${encodeURIComponent(collectionId)}&h=${encodeURIComponent(sitePubKey)}${aff}`
+  // Pass THIS site's hostname so the smartnfts.com sales page can pull the cover/title/description from this
+  // site's cache for an instant paint (works for any niche BigRed site — no per-site config).
+  const src = (typeof location !== 'undefined' && location.hostname) ? `&src=${encodeURIComponent(location.hostname)}` : ''
+  return `${SMARTNFTS}/#c=${encodeURIComponent(collectionId)}&h=${encodeURIComponent(sitePubKey)}${aff}${src}`
 }
 
 async function load () {
