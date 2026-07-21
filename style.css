@@ -84,7 +84,7 @@ main { max-width: 1080px; margin: 0 auto; padding: 0 16px 48px; }
 .card .cover-box.has-back .cover-back { transform: rotateY(180deg); background: #0b0e13; }
 .card .cover-box.has-back.flipped .cover-inner { transform: rotateY(180deg); }
 .card .cover-flip {
-  position: absolute; bottom: 8px; right: 8px; z-index: 3; width: 30px; height: 30px;
+  position: absolute; top: 8px; right: 8px; z-index: 3; width: 30px; height: 30px;
   border-radius: 999px; border: 1px solid rgba(255,255,255,.25); background: rgba(0,0,0,.55);
   color: #fff; font-size: 15px; line-height: 1; cursor: pointer; backdrop-filter: blur(4px);
 }
