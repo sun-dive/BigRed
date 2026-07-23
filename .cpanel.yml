@@ -16,6 +16,8 @@ deployment:
     - /bin/rm -f "$DEPLOYPATH/index.html"
     - /bin/cp style.css "$DEPLOYPATH"
     - /bin/cp app.js "$DEPLOYPATH"
+    # mockup-render.js defines window.MockupRender — app.js needs it to composite mockup covers (design × prop).
+    - /bin/cp mockup-render.js "$DEPLOYPATH"
     # brand.json = nft.sale theme; brand.nftsale.json = the NFTsale.com face (app.js picks by hostname).
     - /bin/cp brand.json "$DEPLOYPATH"
     - /bin/cp brand.nftsale.json "$DEPLOYPATH"
