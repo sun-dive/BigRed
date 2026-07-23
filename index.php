@@ -79,6 +79,7 @@
     <p class="flavour">🐎 after the champion, Phar Lap.</p>
   </footer>
 
+  <script src="mockup-render.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

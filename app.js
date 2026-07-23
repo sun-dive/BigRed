@@ -185,6 +185,49 @@ function previewDownloadName (it) {
   return `${base}.${ext}`
 }
 
+// ── Mockup mix-and-match: composite a design onto a prop, in the browser, via the shared MockupRender ──────────
+/** Load an image as a Promise. */
+function loadImg (src) { return new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(new Error('img ' + src)); i.src = src }) }
+
+/** Find a listing by collection id (catalog list, or the current spotlighted hero). */
+function findListing (data, id) {
+  return (data.listings || []).find(l => l.collectionId === id) || (FOCUSED && FOCUSED.collectionId === id ? FOCUSED : null)
+}
+
+/** Composite a design onto a prop base on a <canvas> via MockupRender. `m` = a listing.mockup, or a swap override
+ *  { clean, base, place, warp, fabric } when the shopper picks a different prop. Falls back to the flat cover. */
+async function compositeMockup (canvas, m) {
+  const R = window.MockupRender
+  if (!R || !m || !m.base || !m.clean) return fallbackCover(canvas)
+  try {
+    const [base, design] = await Promise.all([loadImg(m.base), loadImg(m.clean)])
+    const W = base.naturalWidth || base.width, H = base.naturalHeight || base.height
+    canvas.width = W; canvas.height = H
+    const p = m.place || { x: 0.5, y: 0.5, scale: 1, rot: 0, skewX: 0, skewY: 0 }
+    const dAsp = (design.naturalWidth || design.width) / (design.naturalHeight || design.height)
+    const box = { cx: p.x * W, cy: p.y * H, w: p.scale * W, h: (p.scale * W) / dAsp, rot: p.rot || 0, skewX: p.skewX || 0, skewY: p.skewY || 0 }
+    R.renderCover(canvas.getContext('2d'), { base, design, maps: {}, stageW: W, stageH: H, dpr: 1, box, warp: m.warp || [], fabric: m.fabric == null ? 0.8 : m.fabric })
+    canvas.classList.add('ready')
+  } catch { fallbackCover(canvas) }
+}
+
+/** A failed composite (missing renderer / prop image) degrades to the flat watermarked cover (data-cover). */
+function fallbackCover (canvas) {
+  const src = canvas.dataset.cover
+  if (src) { const img = new Image(); img.loading = 'lazy'; img.src = src; img.alt = ''; canvas.replaceWith(img) } else canvas.remove()
+}
+
+/** Composite every not-yet-done mockup canvas in a container (idempotent — skips ready/in-flight ones). */
+function compositeMockups (root, data) {
+  root.querySelectorAll('canvas.cover-cv:not(.ready):not(.pending)').forEach(cv => {
+    const card = cv.closest('.card'); if (!card) return
+    const it = findListing(data, card.dataset.collection)
+    if (!it || !it.mockup) { fallbackCover(cv); return }
+    cv.classList.add('pending')
+    compositeMockup(cv, it.mockup)
+  })
+}
+
 /** Render the catalog, optionally filtered to a single tag. */
 function buildCard (it, data) {
   const link = listingLink(it.collectionId, data.sitePubKey, data.affRefCode)
@@ -214,11 +257,17 @@ function buildCard (it, data) {
   const shortUrl = it.slug ? `${location.origin}/r/${it.slug}` : link
   const card = document.createElement('article')
   card.className = 'card'
+  card.dataset.collection = it.collectionId
+  // A mockup listing paints its cover as a live canvas COMPOSITE (clean design × prop, in the browser). The flat
+  // watermarked `it.cover` stays as the data fallback (used if the renderer/canvas fails). Non-mockups: plain img.
+  const coverEl = it.mockup
+    ? `<canvas class="cover-cv" data-cover="${escapeHtml(it.cover || '')}"></canvas>`
+    : (it.cover ? `<img loading="lazy" src="${escapeHtml(it.cover)}" alt="${escapeHtml(it.title || '')}" onerror="this.remove()">` : '')
   card.innerHTML =
     `<div class="cover-box${it.backCover ? ' has-back' : ''}">` +
       `<div class="cover-inner">` +
         `<a class="cover cover-front" href="${openHref}" data-open="${escapeHtml(openKey)}">` +
-          (it.cover ? `<img loading="lazy" src="${escapeHtml(it.cover)}" alt="${escapeHtml(it.title || '')}" onerror="this.remove()">` : '') +
+          coverEl +
         `</a>` +
         (it.backCover ? `<div class="cover-back"><img class="cover-back-img" data-src="${escapeHtml(it.backCover)}" alt="" /></div>` : '') +
       `</div>` +
@@ -288,6 +337,8 @@ function wireCards (grid, data) {
       wrap.replaceChildren(audio, dl)
     }
   })
+  // Paint mockup covers as live browser composites (design × prop). Idempotent across lazy-scroll batches.
+  compositeMockups(grid, data)
 }
 
 /** How many of `it`'s tags are in the spotlighted NFT's tag set — drives "more like this" ordering. */
