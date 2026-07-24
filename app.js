@@ -228,6 +228,42 @@ function compositeMockups (root, data) {
   })
 }
 
+// ── Prop switcher (mix-and-match on the spotlight) ────────────────────────────────────────────────────────────
+let PROPS = null // props.json cache (every self-describing prop the curator resolved), loaded once
+async function loadProps () {
+  if (PROPS) return PROPS
+  try { const j = await (await fetch('props.json', { cache: 'no-cache' })).json(); PROPS = Array.isArray(j.props) ? j.props : [] } catch { PROPS = [] }
+  return PROPS
+}
+
+/** On a mockup listing's spotlight, offer every prop matching the design's ratio as a swatch; tapping one
+ *  re-composites the hero cover live (same design, swapped prop). Hidden when fewer than 2 props share the ratio. */
+async function addPropSwitcher (host, it) {
+  if (!it || !it.mockup || !window.MockupRender) return
+  const hero = host.querySelector('canvas.cover-cv'); if (!hero) return
+  const props = (await loadProps()).filter(p => p.ratio === it.mockup.ratio && p.base)
+  if (props.length < 2) return // nothing to switch between yet
+  const swap = p => ({ clean: it.mockup.clean, base: p.base, place: p.place, warp: p.warp, fabric: p.fabric })
+  const bar = document.createElement('div'); bar.className = 'prop-switcher'
+  bar.innerHTML = '<span class="prop-switcher-label">See it on…</span>'
+  const row = document.createElement('div'); row.className = 'prop-swatches'
+  for (const p of props) {
+    const sw = document.createElement('button'); sw.type = 'button'; sw.className = 'prop-swatch'
+    if (p.name) sw.title = p.name
+    if (p.txid === it.mockup.prop) sw.classList.add('active')
+    const cv = document.createElement('canvas'); cv.className = 'prop-swatch-cv'; sw.appendChild(cv)
+    sw.onclick = () => {
+      row.querySelectorAll('.prop-swatch').forEach(s => s.classList.remove('active')); sw.classList.add('active')
+      compositeMockup(hero, swap(p)) // re-render the big cover with the chosen prop
+    }
+    row.appendChild(sw)
+    compositeMockup(cv, swap(p)) // the swatch previews the design on that prop
+  }
+  bar.appendChild(row)
+  const coverBox = host.querySelector('.card .cover-box')
+  if (coverBox) coverBox.after(bar)
+}
+
 /** Render the catalog, optionally filtered to a single tag. */
 function buildCard (it, data) {
   const link = listingLink(it.collectionId, data.sitePubKey, data.affRefCode)
@@ -362,6 +398,7 @@ function renderFocus (data) {
     '<button class="focus-close" type="button">✕ Browse all listings</button></div>'
   host.appendChild(buildCard(FOCUSED, data))
   wireCards(host, data)
+  if (FOCUSED.mockup) addPropSwitcher(host, FOCUSED) // mix-and-match: swap the prop under the design
   host.querySelector('.focus-close').onclick = () => {
     FOCUS_SLUG = ''; FOCUSED = null
     history.replaceState(null, '', location.pathname + location.hash) // drop ?n= so a refresh shows everything

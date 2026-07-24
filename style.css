@@ -74,6 +74,14 @@ main { max-width: 1080px; margin: 0 auto; padding: 0 16px 48px; }
 /* Mockup composite canvas — fills the cover like an img; fades in when the browser finishes compositing. */
 .card .cover canvas.cover-cv { width: 100%; height: 100%; object-fit: cover; display: block; opacity: 0; transition: opacity .25s ease; }
 .card .cover canvas.cover-cv.ready { opacity: 1; }
+/* Prop switcher (mix-and-match on the spotlight): tap a swatch to re-composite the hero cover with that prop. */
+.prop-switcher { margin: 12px 0 4px; }
+.prop-switcher-label { display: block; margin: 0 0 6px; font-size: 13px; color: var(--muted); }
+.prop-swatches { display: flex; flex-wrap: wrap; gap: 8px; }
+.prop-swatch { width: 66px; height: 66px; padding: 0; border: 2px solid var(--line); border-radius: 8px; overflow: hidden; cursor: pointer; background: var(--panel); transition: border-color .15s ease; }
+.prop-swatch:hover { border-color: var(--link); }
+.prop-swatch.active { border-color: var(--accent); }
+.prop-swatch-cv { width: 100%; height: 100%; object-fit: cover; display: block; }
 /* The BACK is shown WHOLE (contain), not cropped: it's typically a text-heavy blurb at book proportions, so
    cropping to the square card would cut the text. A portrait/landscape back letterboxes on the dark face. */
 .card .cover-back img { width: 100%; height: 100%; object-fit: contain; display: block; }
