@@ -77,34 +77,47 @@
     return out
   }
 
-  /** Keystone / perspective: taper the width top→bottom (ky) and/or height left→right (kx) so a rectangle
-   *  becomes a trapezoid — the illusion of a plane receding in depth (which an affine shear can't give). ky>0 =
-   *  top narrower (receding away at the top); kx>0 = left narrower. Two 1-D slice passes approximate the quad. */
+  /** Keystone / perspective: a plane receding in depth (which an affine shear can't give). The receding edge must
+   *  foreshorten in BOTH axes — shorter across AND compressed along, so the whole side narrows, not just tapers to
+   *  a trapezoid. We use the projective scale s(u) = f/(1-(1-f)u) (f = receding-edge scale): the along-axis slice
+   *  positions accumulate s (bunching the far side inward → narrower overall), and the cross-axis size scales by s.
+   *  ky>0 = top recedes; kx>0 = left recedes. Two 1-D projective passes approximate the quad. */
+  function projTaper(k) {
+    const f = Math.max(0.05, 1 - Math.abs(k) * 0.9)   // receding-edge scale (never > 1 → never overflow/clip)
+    const recedeStart = k > 0                          // start edge (top/left) recedes
+    const span = (1 + f) / 2                           // foreshortened along-axis length (<1 → that side pulls in)
+    return {
+      span,
+      // source fraction u (0..1) → screen fraction p (0..1) + cross-axis scale. Perspective-correct texture spacing
+      // (far side bunches) with the scale LINEAR in p → the destination edges stay straight (a real receding plane).
+      at(u) {
+        const uu = recedeStart ? u : 1 - u
+        const pL = uu * f / (1 - uu * (1 - f))         // projective nearness: 0 at the far edge, 1 at the near edge
+        return { p: recedeStart ? pL : 1 - pL, scale: f + (1 - f) * pL }
+      },
+    }
+  }
   function taperRows(src, ky) {
     const pw = src.width, ph = src.height
     const out = makeCanvas(pw, ph); const octx = out.getContext('2d'); octx.imageSmoothingQuality = 'high'
-    // Never scale an edge ABOVE 1 (that would overflow the canvas and clip). Shrink whichever edge recedes:
-    // ky>0 narrows the top, ky<0 narrows the bottom; the opposite edge stays full width.
-    const topScale = ky > 0 ? 1 - ky * 0.9 : 1
-    const botScale = ky < 0 ? 1 + ky * 0.9 : 1
-    const N = Math.max(200, Math.round(ph / 2))
+    const t = projTaper(ky), destH = ph * t.span, y0 = (ph - destH) / 2  // centre the vertically-foreshortened plane
+    const N = Math.max(240, Math.round(ph / 2))
     for (let i = 0; i < N; i++) {
-      const v0 = i / N, v1 = (i + 1) / N, vm = (v0 + v1) / 2
-      const dw = pw * (topScale + (botScale - topScale) * vm)
-      octx.drawImage(src, 0, v0 * ph, pw, Math.max(1, (v1 - v0) * ph), (pw - dw) / 2, v0 * ph, dw, (v1 - v0) * ph + 0.6)
+      const a = t.at(i / N), b = t.at((i + 1) / N)
+      const dw = pw * (a.scale + b.scale) / 2          // row width foreshortens with depth
+      octx.drawImage(src, 0, (i / N) * ph, pw, ph / N, (pw - dw) / 2, y0 + a.p * destH, dw, (b.p - a.p) * destH + 0.6)
     }
     return out
   }
   function taperCols(src, kx) {
     const pw = src.width, ph = src.height
     const out = makeCanvas(pw, ph); const octx = out.getContext('2d'); octx.imageSmoothingQuality = 'high'
-    const leftScale = kx > 0 ? 1 - kx * 0.9 : 1
-    const rightScale = kx < 0 ? 1 + kx * 0.9 : 1
-    const N = Math.max(200, Math.round(pw / 2))
+    const t = projTaper(kx), destW = pw * t.span, x0 = (pw - destW) / 2  // centre the horizontally-foreshortened plane
+    const N = Math.max(240, Math.round(pw / 2))
     for (let i = 0; i < N; i++) {
-      const u0 = i / N, u1 = (i + 1) / N, um = (u0 + u1) / 2
-      const dh = ph * (leftScale + (rightScale - leftScale) * um)
-      octx.drawImage(src, u0 * pw, 0, Math.max(1, (u1 - u0) * pw), ph, u0 * pw, (ph - dh) / 2, (u1 - u0) * pw + 0.6, dh)
+      const a = t.at(i / N), b = t.at((i + 1) / N)
+      const dh = ph * (a.scale + b.scale) / 2          // column height foreshortens with depth
+      octx.drawImage(src, (i / N) * pw, 0, pw / N, ph, x0 + a.p * destW, (ph - dh) / 2, (b.p - a.p) * destW + 0.6, dh)
     }
     return out
   }
