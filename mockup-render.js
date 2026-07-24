@@ -82,42 +82,49 @@
    *  a trapezoid. We use the projective scale s(u) = f/(1-(1-f)u) (f = receding-edge scale): the along-axis slice
    *  positions accumulate s (bunching the far side inward → narrower overall), and the cross-axis size scales by s.
    *  ky>0 = top recedes; kx>0 = left recedes. Two 1-D projective passes approximate the quad. */
-  function projTaper(k) {
-    const f = Math.max(0.05, 1 - Math.abs(k) * 0.9)   // receding-edge scale (never > 1 → never overflow/clip)
-    const recedeStart = k > 0                          // start edge (top/left) recedes
-    const span = f                                     // foreshortened along-axis length (<1 → that side pulls in)
-    return {
-      span,
-      // source fraction u (0..1) → screen fraction p (0..1) + cross-axis scale. Perspective-correct texture spacing
-      // (far side bunches) with the scale LINEAR in p → the destination edges stay straight (a real receding plane).
-      at(u) {
-        const uu = recedeStart ? u : 1 - u
-        const pL = uu * f / (1 - uu * (1 - f))         // projective nearness: 0 at the far edge, 1 at the near edge
-        return { p: recedeStart ? pL : 1 - pL, scale: f + (1 - f) * pL }
-      },
+  // Standard perspective projection of a plane rotated about its near edge. The slider `k` sets the tilt angle;
+  // a fixed camera distance CAM (in plane-widths) sets the lens. Each source slice u∈[0,1] maps to a screen
+  // position + a scale via the perspective divide (depth = CAM + q·sinθ): the far side both shortens (scale) and
+  // pulls inward (position). Straight edges fall out because it's a real homography. Returns per-boundary arrays.
+  const PERSP_ANGLE = 1.35   // slider→radians (k=0.8 → ~1.08 rad ≈ 62°)
+  const PERSP_CAM = 0.9      // camera distance in plane-widths (smaller = stronger perspective)
+  function projTaper(k, N) {
+    const th = Math.min(Math.abs(k), 0.85) * PERSP_ANGLE
+    const cos = Math.cos(th), sin = Math.sin(th), D = PERSP_CAM
+    const recedeStart = k > 0                          // start edge (left/top) is the FAR edge
+    const sc = new Float64Array(N + 1), xr = new Float64Array(N + 1)
+    let mn = Infinity, mx = -Infinity
+    for (let i = 0; i <= N; i++) {
+      const u = i / N, q = recedeStart ? 1 - u : u     // q = distance from the NEAR edge (0) to the FAR edge (1)
+      const depth = D + q * sin
+      sc[i] = D / depth                                // cross-axis scale: 1 at near, D/(D+sin) at far
+      const pos = q * cos * D / depth                  // along-axis offset from the near edge (0..~1)
+      xr[i] = recedeStart ? 1 - pos : pos              // screen coord (0..1), near edge anchored to its side
+      if (xr[i] < mn) mn = xr[i]; if (xr[i] > mx) mx = xr[i]
     }
+    return { sc, xr, mn, span: mx - mn }               // span < 1 → the plane's projected length narrows
   }
   function taperRows(src, ky) {
     const pw = src.width, ph = src.height
     const out = makeCanvas(pw, ph); const octx = out.getContext('2d'); octx.imageSmoothingQuality = 'high'
-    const t = projTaper(ky), destH = ph * t.span, y0 = (ph - destH) / 2  // centre the vertically-foreshortened plane
-    const N = Math.max(240, Math.round(ph / 2))
+    const N = Math.max(240, Math.round(ph / 2)), t = projTaper(ky, N)
+    const destH = ph * t.span, y0 = (ph - destH) / 2   // centre the vertically-foreshortened plane
     for (let i = 0; i < N; i++) {
-      const a = t.at(i / N), b = t.at((i + 1) / N)
-      const dw = pw * (a.scale + b.scale) / 2          // row width foreshortens with depth
-      octx.drawImage(src, 0, (i / N) * ph, pw, ph / N, (pw - dw) / 2, y0 + a.p * destH, dw, (b.p - a.p) * destH + 0.6)
+      const dw = pw * (t.sc[i] + t.sc[i + 1]) / 2       // row width foreshortens with depth
+      const ya = y0 + (t.xr[i] - t.mn) * ph, yb = y0 + (t.xr[i + 1] - t.mn) * ph
+      octx.drawImage(src, 0, (i / N) * ph, pw, ph / N, (pw - dw) / 2, Math.min(ya, yb), dw, Math.abs(yb - ya) + 0.6)
     }
     return out
   }
   function taperCols(src, kx) {
     const pw = src.width, ph = src.height
     const out = makeCanvas(pw, ph); const octx = out.getContext('2d'); octx.imageSmoothingQuality = 'high'
-    const t = projTaper(kx), destW = pw * t.span, x0 = (pw - destW) / 2  // centre the horizontally-foreshortened plane
-    const N = Math.max(240, Math.round(pw / 2))
+    const N = Math.max(240, Math.round(pw / 2)), t = projTaper(kx, N)
+    const destW = pw * t.span, x0 = (pw - destW) / 2   // centre the horizontally-foreshortened plane
     for (let i = 0; i < N; i++) {
-      const a = t.at(i / N), b = t.at((i + 1) / N)
-      const dh = ph * (a.scale + b.scale) / 2          // column height foreshortens with depth
-      octx.drawImage(src, (i / N) * pw, 0, pw / N, ph, x0 + a.p * destW, (ph - dh) / 2, (b.p - a.p) * destW + 0.6, dh)
+      const dh = ph * (t.sc[i] + t.sc[i + 1]) / 2       // column height foreshortens with depth
+      const xa = x0 + (t.xr[i] - t.mn) * pw, xb = x0 + (t.xr[i + 1] - t.mn) * pw
+      octx.drawImage(src, (i / N) * pw, 0, pw / N, ph, Math.min(xa, xb), (ph - dh) / 2, Math.abs(xb - xa) + 0.6, dh)
     }
     return out
   }
