@@ -85,7 +85,7 @@
   function projTaper(k) {
     const f = Math.max(0.05, 1 - Math.abs(k) * 0.9)   // receding-edge scale (never > 1 → never overflow/clip)
     const recedeStart = k > 0                          // start edge (top/left) recedes
-    const span = (1 + f) / 2                           // foreshortened along-axis length (<1 → that side pulls in)
+    const span = f                                     // foreshortened along-axis length (<1 → that side pulls in)
     return {
       span,
       // source fraction u (0..1) → screen fraction p (0..1) + cross-axis scale. Perspective-correct texture spacing
