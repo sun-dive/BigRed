@@ -200,13 +200,15 @@ async function compositeMockup (canvas, m) {
   const R = window.MockupRender
   if (!R || !m || !m.base || !m.clean) return fallbackCover(canvas)
   try {
-    const [base, design] = await Promise.all([loadImg(m.base), loadImg(m.clean)])
+    // Optional fabric-contour: load the curator-derived fold map + append a `disp` warp stage at its strength.
+    const [base, design, dispImg] = await Promise.all([loadImg(m.base), loadImg(m.clean), m.disp && m.contour ? loadImg(m.disp).catch(() => null) : null])
     const W = base.naturalWidth || base.width, H = base.naturalHeight || base.height
     canvas.width = W; canvas.height = H
     const p = m.place || { x: 0.5, y: 0.5, scale: 1, rot: 0, skewX: 0, skewY: 0 }
     const dAsp = (design.naturalWidth || design.width) / (design.naturalHeight || design.height)
     const box = { cx: p.x * W, cy: p.y * H, w: p.scale * W, h: (p.scale * W) / dAsp, rot: p.rot || 0, skewX: p.skewX || 0, skewY: p.skewY || 0 }
-    R.renderCover(canvas.getContext('2d'), { base, design, maps: {}, stageW: W, stageH: H, dpr: 1, box, warp: m.warp || [], fabric: m.fabric == null ? 0.8 : m.fabric })
+    const warp = (m.warp || []).concat(dispImg ? [{ t: 'disp', str: m.contour }] : [])
+    R.renderCover(canvas.getContext('2d'), { base, design, maps: dispImg ? { disp: dispImg } : {}, stageW: W, stageH: H, dpr: 1, box, warp, fabric: m.fabric == null ? 0.8 : m.fabric })
     canvas.classList.add('ready')
   } catch { fallbackCover(canvas) }
 }
