@@ -25,6 +25,7 @@ const CATS = [
   { key: 'image', label: 'Images', icon: '🖼️' },
   { key: 'audio', label: 'Audio', icon: '🎵' },
   { key: 'video', label: 'Video', icon: '🎬' },
+  { key: 'bmc', label: 'BMC', icon: '🎞️' }, // Block Media Format container — the trifecta's on-chain media format
   { key: 'document', label: 'Documents', icon: '📄' },
   { key: 'text', label: 'Text', icon: '📝' },
   { key: 'archive', label: 'Archives', icon: '🗜️' },
