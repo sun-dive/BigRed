@@ -87,6 +87,17 @@
       <button class="tool"    data-tool="eraser"      title="Eraser — paints the background back">🧽</button>
     </div>
     <div class="sep"></div>
+    <div class="group"><span class="lbl">Plant</span>
+      <select id="fracKind" title="Fractal species (for the 🌿 brush)">
+        <option value="Fern">🌿 Fern</option><option value="Tree">🌳 Tree</option><option value="Vine">🌀 Vine</option>
+        <option value="Coral">🪸 Coral</option><option value="Lightning">⚡ Bolt</option><option value="Bush">🌾 Bush</option>
+        <option value="Mandelbrot">◉ Mandelbrot</option>
+      </select>
+      <select id="fracGrow" title="Time-lapse growth (for the 🌿 brush)">
+        <option value="off">Grow: off</option><option value="once">Grow: once</option><option value="loop">Grow: loop ∞</option>
+      </select>
+    </div>
+    <div class="sep"></div>
     <div class="group"><span class="lbl">Stamp</span>
       <button class="tool" data-tool="stamp" title="Stamp — click to place a shape">⭐</button>
       <select id="stampShape" title="Stamp shape"><option>★</option><option>●</option><option>♥</option><option>✦</option></select>
@@ -214,21 +225,48 @@
     for(let i=0;i<n;i++){ const a=Math.random()*6.2832, rr=Math.sqrt(Math.random())*R, c=document.createElementNS(SVGNS,"circle");
       c.setAttribute("cx",(p.x+Math.cos(a)*rr).toFixed(1)); c.setAttribute("cy",(p.y+Math.sin(a)*rr).toFixed(1)); c.setAttribute("r",dr.toFixed(2)); c.setAttribute("fill",color); current.appendChild(c); } };
 
-  // ── Fractal brush: build a UNIT plant once (recursive L-system), then aim+scale it to the drag ──
-  const FDEPTH=5; let fbase=null;
-  const fLine=(x1,y1,x2,y2,w)=>{ const l=document.createElementNS(SVGNS,"line");
+  // ── Fractal brush: recursive L-system plant · species presets + optional time-lapse growth ──
+  const FRACTALS={
+    Fern:{spread:.26,sJit:.16,ratio:.76,rJit:.05,third:.55,bias:0,ang:.12,leaf:1.5,leafOn:true,depth:5,wF:.9},
+    Tree:{spread:.48,sJit:.30,ratio:.70,rJit:.08,third:.30,bias:0,ang:.22,leaf:1.9,leafOn:true,depth:5,wF:1.2},
+    Vine:{spread:.30,sJit:.14,ratio:.80,rJit:.05,third:.12,bias:.24,ang:.10,leaf:1.2,leafOn:true,depth:6,wF:.8},
+    Coral:{spread:.42,sJit:.30,ratio:.73,rJit:.07,third:.85,bias:0,ang:.28,leaf:0,leafOn:false,depth:5,wF:1},
+    Lightning:{spread:.28,sJit:.6,ratio:.74,rJit:.08,third:.03,bias:0,ang:.55,leaf:0,leafOn:false,depth:5,wF:.65},
+    Bush:{spread:.55,sJit:.34,ratio:.67,rJit:.08,third:.7,bias:0,ang:.3,leaf:1.8,leafOn:true,depth:5,wF:1.05},
+  };
+  let fkind="Fern", fgrow="off", fbase=null, fcount=0;
+  // time-lapse: each segment/leaf animates in, staggered by its generation (trunk→tips); once=grow&hold, loop=∞
+  const fAnim=(el,attr,fromV,toV,gen,maxGen)=>{ const step=0.3, an=document.createElementNS(SVGNS,"animate"); an.setAttribute("attributeName",attr);
+    if(fgrow==="once"){ an.setAttribute("from",(+fromV).toFixed(3)); an.setAttribute("to",(+toV).toFixed(3)); an.setAttribute("begin",(gen*step).toFixed(2)+"s"); an.setAttribute("dur",step+"s"); an.setAttribute("fill","freeze"); }
+    else{ const cyc=((maxGen+1)*step)*1.8, a=(gen*step)/cyc, b=((gen+1)*step)/cyc;
+      an.setAttribute("values",`${(+fromV).toFixed(3)};${(+fromV).toFixed(3)};${(+toV).toFixed(3)};${(+toV).toFixed(3)}`);
+      an.setAttribute("keyTimes",`0;${a.toFixed(3)};${b.toFixed(3)};1`); an.setAttribute("dur",cyc.toFixed(2)+"s"); an.setAttribute("repeatCount","indefinite"); }
+    el.appendChild(an); };
+  const fSeg=(x1,y1,x2,y2,w,segLen,gen,maxGen)=>{ const l=document.createElementNS(SVGNS,"line");
     l.setAttribute("x1",x1.toFixed(3)); l.setAttribute("y1",y1.toFixed(3)); l.setAttribute("x2",x2.toFixed(3)); l.setAttribute("y2",y2.toFixed(3));
-    l.setAttribute("stroke",color); l.setAttribute("stroke-width",w.toFixed(4)); l.setAttribute("stroke-linecap","round"); return l; };
-  const fGrow=(g,x,y,ang,len,depth,uw)=>{ const x2=x+Math.cos(ang)*len, y2=y+Math.sin(ang)*len;
-    g.appendChild(fLine(x,y,x2,y2, uw*(depth/FDEPTH+0.15)));
-    if(depth<=1){ const lf=document.createElementNS(SVGNS,"circle"); lf.setAttribute("cx",x2.toFixed(3)); lf.setAttribute("cy",y2.toFixed(3)); lf.setAttribute("r",(uw*1.6).toFixed(4)); lf.setAttribute("fill",color); g.appendChild(lf); return; }
-    const spread=0.36+(Math.random()-.5)*0.28, nlen=len*(0.70+Math.random()*0.08), nd=depth-1;
-    fGrow(g,x2,y2,ang-spread+(Math.random()-.5)*0.22,nlen,nd,uw);
-    fGrow(g,x2,y2,ang+spread+(Math.random()-.5)*0.22,nlen,nd,uw);
-    if(Math.random()<0.42) fGrow(g,x2,y2,ang+(Math.random()-.5)*0.3,nlen*0.88,nd,uw); };
+    l.setAttribute("stroke",color); l.setAttribute("stroke-width",w.toFixed(4)); l.setAttribute("stroke-linecap","round");
+    if(fgrow!=="off"){ const sl=segLen.toFixed(3); l.setAttribute("stroke-dasharray",sl); l.setAttribute("stroke-dashoffset",sl); fAnim(l,"stroke-dashoffset",segLen,0,gen,maxGen); }
+    return l; };
+  const fGrow=(g,x,y,ang,len,depth,uw,fp)=>{ if(++fcount>560) return; const x2=x+Math.cos(ang)*len, y2=y+Math.sin(ang)*len, gen=fp.depth-depth;
+    g.appendChild(fSeg(x,y,x2,y2, uw*fp.wF*(depth/fp.depth+0.15), len, gen, fp.depth));
+    if(depth<=1){ if(fp.leafOn){ const lf=document.createElementNS(SVGNS,"circle"); lf.setAttribute("cx",x2.toFixed(3)); lf.setAttribute("cy",y2.toFixed(3)); lf.setAttribute("r",(uw*fp.leaf).toFixed(4)); lf.setAttribute("fill",color);
+      if(fgrow!=="off"){ lf.setAttribute("opacity","0"); fAnim(lf,"opacity",0,1,gen,fp.depth); } g.appendChild(lf); } return; }
+    const spread=fp.spread+(Math.random()-.5)*fp.sJit, nlen=len*(fp.ratio+Math.random()*fp.rJit), nd=depth-1;
+    fGrow(g,x2,y2,ang-spread+fp.bias+(Math.random()-.5)*fp.ang,nlen,nd,uw,fp);
+    fGrow(g,x2,y2,ang+spread+fp.bias+(Math.random()-.5)*fp.ang,nlen,nd,uw,fp);
+    if(Math.random()<fp.third) fGrow(g,x2,y2,ang+fp.bias+(Math.random()-.5)*fp.ang*1.5,nlen*0.88,nd,uw,fp); };
   const fPlace=p=>{ if(!fbase||!current) return; const dx=p.x-fbase.x, dy=p.y-fbase.y; let len=Math.hypot(dx,dy);
     const ang=len<3?-90:Math.atan2(dy,dx)*180/Math.PI; len=Math.max(26,Math.min(420,len));
     current.setAttribute("transform",`translate(${fbase.x} ${fbase.y}) rotate(${ang.toFixed(1)}) scale(${len.toFixed(1)})`); };
+  // ── Classic Mandelbrot (escape-time; a RASTER fractal — computed on a canvas, placed as an <image> atom) ──
+  const hsl2rgb=(h,s,l)=>{ h=((h%360)+360)%360/360; const a=s*Math.min(l,1-l), f=n=>{ const k=(n+h*12)%12; return Math.round(255*(l-a*Math.max(-1,Math.min(k-3,9-k,1)))); }; return [f(0),f(8),f(4)]; };
+  const mandelImage=()=>{ const S=224, cv=document.createElement("canvas"); cv.width=cv.height=S; const cc=cv.getContext("2d"), img=cc.createImageData(S,S), d=img.data, X0=-2.3,X1=0.9,Y0=-1.6,Y1=1.6, MI=110;
+    for(let py=0;py<S;py++){ const cy=Y0+(py/S)*(Y1-Y0); for(let px=0;px<S;px++){ const cxr=X0+(px/S)*(X1-X0); let zx=0,zy=0,i=0;
+      while(i<MI && zx*zx+zy*zy<4){ const t=zx*zx-zy*zy+cxr; zy=2*zx*zy+cy; zx=t; i++; } const o=(py*S+px)*4;
+      if(i>=MI){ d[o]=d[o+1]=d[o+2]=6; d[o+3]=255; } else { const t=i/MI, c=hsl2rgb(205+t*520,.78,.12+t*.56); d[o]=c[0]; d[o+1]=c[1]; d[o+2]=c[2]; d[o+3]=255; } } }
+    cc.putImageData(img,0,0); const url=cv.toDataURL();
+    const im=document.createElementNS(SVGNS,"image"); im.setAttribute("href",url); im.setAttributeNS("http://www.w3.org/1999/xlink","xlink:href",url);
+    im.setAttribute("x","-0.5"); im.setAttribute("y","-0.5"); im.setAttribute("width","1"); im.setAttribute("height","1"); im.setAttribute("preserveAspectRatio","none"); return im; };
 
   // ── Zoom / pan (viewBox — toSvg's getScreenCTM handles it, so drawing coords stay correct) ──
   const applyView=()=>{ const vw=1000/zoom; panX=Math.max(0,Math.min(1000-vw,panX)); panY=Math.max(0,Math.min(1000-vw,panY));
@@ -258,7 +296,9 @@
     if(tool==="stamp"){ placeStamp(p); return; }
     svg.setPointerCapture(e.pointerId); drawing=true; undone=[]; points=[p];
     if(tool==="spray"){ current=document.createElementNS(SVGNS,"g"); active.appendChild(current); sprayAt(p); refresh(); return; }
-    if(tool==="fractal"){ fbase=p; current=document.createElementNS(SVGNS,"g"); fGrow(current,0,0,0,1,FDEPTH,width/160); active.appendChild(current); fPlace(p); refresh(); return; }
+    if(tool==="fractal"){ fbase=p; fcount=0; current=document.createElementNS(SVGNS,"g");
+      if(fkind==="Mandelbrot"){ current.appendChild(mandelImage()); } else { const fp=FRACTALS[fkind]||FRACTALS.Fern; fGrow(current,0,0,0,1,fp.depth,width/160,fp); }
+      active.appendChild(current); fPlace(p); refresh(); return; }
     if(FREEHAND.has(tool)){ current=document.createElementNS(SVGNS,"path"); strokeAttrs(current); current.setAttribute("d",`M ${p.x} ${p.y}`); }
     else if(tool==="line"){ current=document.createElementNS(SVGNS,"line"); strokeAttrs(current); current.setAttribute("x1",p.x); current.setAttribute("y1",p.y); current.setAttribute("x2",p.x); current.setAttribute("y2",p.y); }
     else if(tool==="rect"){ current=document.createElementNS(SVGNS,"rect"); strokeAttrs(current); current._o=p; }
@@ -320,6 +360,7 @@
   document.querySelectorAll("button.tool[data-tool]").forEach(b=>{ b.onclick=()=>{ tool=b.dataset.tool; svg.classList.toggle("pan",tool==="pan");
     document.querySelectorAll("button.tool[data-tool]").forEach(x=>x.classList.remove("on")); b.classList.add("on"); }; });
   $("wiggle").onclick=()=>{ wiggle=!wiggle; $("wiggle").classList.toggle("on",wiggle); };
+  $("fracKind").onchange=()=>{ fkind=$("fracKind").value; }; $("fracGrow").onchange=()=>{ fgrow=$("fracGrow").value; };
 
   // ── Colour ──
   const nc=$("nativeColor"), hexIn=$("hex"), paletteEl=$("palette");
