@@ -179,8 +179,15 @@
     <select id="theme" title="Canvas colour theme"></select>
     <button class="act" id="viewsvg">&lt;/&gt; SVG</button>
     <button class="act" id="exportSvg" title="Export an animated SVG — the mintable, self-animating atom">⬇ SVG</button>
-    <button class="act pay" id="hq">⬇ Ultra-HQ</button>
-    <button class="act" id="cover" title="800×800 PNG — sized for a 1:1 NFT cover, so the cropper passes it with no crop">⬇ 800² Cover</button>
+    <select id="pngRes" title="PNG output resolution — small (800²) for a 1:1 cover, large for the HQ deliverable">
+      <option value="800">800² · cover</option>
+      <option value="1000">1000²</option>
+      <option value="1500">1500²</option>
+      <option value="2000">2000²</option>
+      <option value="3000">3000² · ultra-HQ</option>
+      <option value="4096">4096² · max</option>
+    </select>
+    <button class="act pay" id="pngExport" title="Export a PNG at the chosen resolution — cover or HQ deliverable">⬇ PNG</button>
   </footer>
 
 <script>
@@ -435,8 +442,7 @@
     img.onload=()=>{ const cv=document.createElement("canvas"); cv.width=cv.height=SIZE; const cx=cv.getContext("2d"); cx.fillStyle=bgColor(); cx.fillRect(0,0,SIZE,SIZE); cx.drawImage(img,0,0,SIZE,SIZE); URL.revokeObjectURL(url);
       cv.toBlob(b=>{ const a=document.createElement("a"); a.href=URL.createObjectURL(b); a.download=name; a.click(); },"image/png"); };
     img.onerror=()=>{ alert("Export failed in this browser — try Chrome/Edge/Firefox."); URL.revokeObjectURL(url); }; img.src=url; };
-  $("hq").onclick=()=>rasterPNG(3000,"dream-canvas-3000px.png");
-  $("cover").onclick=()=>rasterPNG(800,"dream-canvas-cover-800.png"); // 800×800 = canonical 1:1 NFT cover, passes the crop filter
+  $("pngExport").onclick=()=>{ const S=Math.max(64,Math.min(4096,parseInt($("pngRes").value,10)||800)); rasterPNG(S,`dream-canvas-${S}px.png`); }; // chosen res: 800² cover … 4096² max
 
   // ── Export a standalone ANIMATED SVG (vector + SMIL preserved: wiggle/grow/mandelbrot-cycle) — the mintable atom ──
   $("exportSvg").onclick=()=>{
