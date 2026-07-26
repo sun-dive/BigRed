@@ -83,6 +83,7 @@
       <button class="tool" data-tool="line" title="Line">╱</button>
       <button class="tool" data-tool="rect" title="Rectangle">▭</button>
       <button class="tool" data-tool="ellipse" title="Ellipse">◯</button>
+      <button class="tool" id="wiggle" title="Wiggle — make your strokes come alive (WigglyPaint-style)" style="min-width:auto;padding:7px 9px">🌀</button>
     </div>
     <div class="sep"></div>
     <div class="group" id="widths"><span class="lbl">Size</span></div>
@@ -114,6 +115,10 @@
         <rect id="bg" x="0" y="0" width="1000" height="1000"></rect>
         <g id="committed"></g>
         <g id="active"></g>
+        <g id="brushCursor" pointer-events="none" opacity="0">
+          <circle id="bc1" r="3" fill="none" stroke="#000" stroke-width="1.6"></circle>
+          <circle id="bc2" r="3" fill="none" stroke="#fff" stroke-width="0.8"></circle>
+        </g>
       </svg>
       <div class="hint">draw a stroke → “Add mark” to commit it · committed marks lock (additive only) · your work auto-saves</div>
     </div>
@@ -187,9 +192,31 @@
     else if(tool==="rect"){ const o=current._o; current.setAttribute("x",Math.min(o.x,p.x)); current.setAttribute("y",Math.min(o.y,p.y)); current.setAttribute("width",Math.abs(p.x-o.x)); current.setAttribute("height",Math.abs(p.y-o.y)); }
     else { const o=current._o; current.setAttribute("cx",(o.x+p.x)/2); current.setAttribute("cy",(o.y+p.y)/2); current.setAttribute("rx",Math.abs(p.x-o.x)/2); current.setAttribute("ry",Math.abs(p.y-o.y)/2); } };
   const end=e=>{ if(!drawing) return; drawing=false; try{svg.releasePointerCapture(e.pointerId);}catch(_){}
-    if(current&&current._o) delete current._o; save(); refresh(); };
+    if(current&&current._o) delete current._o;
+    if(wiggle && current && current.tagName==="path" && points.length>1) boil(current,points);
+    save(); refresh(); };
   svg.addEventListener("pointerdown",start); svg.addEventListener("pointermove",move);
   svg.addEventListener("pointerup",end); svg.addEventListener("pointercancel",end);
+
+  // ── Wiggle: bake a 3-frame "boil" (jittered path variants) into a SMIL <animate> → the stroke wiggles
+  //    forever, natively, no JS, a few hundred bytes; survives save/reload; the subtle-animation north star. ──
+  let wiggle=false;
+  $("wiggle").onclick=()=>{ wiggle=!wiggle; $("wiggle").classList.toggle("on",wiggle); };
+  const J=7, jitter=pts=>pts.map(p=>({x:p.x+(Math.random()-.5)*2*J, y:p.y+(Math.random()-.5)*2*J}));
+  const boil=(el,pts)=>{ const f=[smooth(pts),smooth(jitter(pts)),smooth(jitter(pts))];
+    el.setAttribute("d",f[0]);
+    const an=document.createElementNS(SVGNS,"animate");
+    an.setAttribute("attributeName","d"); an.setAttribute("values",f.join(";"));
+    an.setAttribute("dur","0.4s"); an.setAttribute("repeatCount","indefinite"); an.setAttribute("calcMode","discrete");
+    el.appendChild(an); };
+
+  // ── Brush cursor: a ring at the pointer sized to the brush, so you see where/how big the stroke starts ──
+  const cursor=$("brushCursor"), bc1=$("bc1"), bc2=$("bc2");
+  const showCursor=e=>{ const p=toSvg(e); cursor.setAttribute("transform",`translate(${p.x} ${p.y})`);
+    const r=Math.max(2,width/2); bc1.setAttribute("r",r); bc2.setAttribute("r",r); cursor.setAttribute("opacity","1"); };
+  svg.addEventListener("pointermove",showCursor);
+  svg.addEventListener("pointerenter",showCursor);
+  svg.addEventListener("pointerleave",()=>cursor.setAttribute("opacity","0"));
 
   $("undo").onclick=()=>{ const els=[...active.children]; if(!els.length) return; undone.push(els[els.length-1]); active.removeChild(els[els.length-1]); save(); refresh(); };
   $("redo").onclick=()=>{ const el=undone.pop(); if(el){ active.appendChild(el); save(); refresh(); } };
@@ -264,7 +291,7 @@
     $("svgview").innerHTML=`<span class="g">&lt;!-- ${nContrib} mark atom(s) · ${bytes} bytes on-chain · rendered natively --&gt;</span>\n`+
       html.replace(/</g,"&lt;").replace(/&lt;g /g,'<span class="g">&lt;g </span>'); };
 
-  $("hq").onclick=()=>{ const SIZE=3000; const clone=svg.cloneNode(true); clone.querySelector("#active")?.remove();
+  $("hq").onclick=()=>{ const SIZE=3000; const clone=svg.cloneNode(true); clone.querySelector("#active")?.remove(); clone.querySelector("#brushCursor")?.remove();
     clone.setAttribute("width",SIZE); clone.setAttribute("height",SIZE);
     const url=URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(clone)],{type:"image/svg+xml"}));
     const img=new Image();
