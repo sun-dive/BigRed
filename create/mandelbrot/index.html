@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Mandelbrot — infinite zoom</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='84'>◉</text></svg>">
+<meta property="og:title" content="Mandelbrot — infinite zoom">
+<meta property="og:description" content="Endless depth from z = z² + c. Built with a few lines of maths, not a shopping list.">
+<style>
+  html,body{margin:0;height:100%;background:#05060a;overflow:hidden;font-family:ui-monospace,Menlo,monospace}
+  canvas{display:block;width:100vw;height:100vh}
+  .cap{position:fixed;left:14px;bottom:12px;color:rgba(255,255,255,.65);font-size:12px;letter-spacing:.04em;
+    text-shadow:0 1px 3px #000;pointer-events:auto;user-select:none}
+  .cap a{color:rgba(255,255,255,.85);text-decoration:none}
+  .cap b{color:#7df9ff}
+  .hint{position:fixed;right:14px;bottom:12px;color:rgba(255,255,255,.4);font-size:11px;text-shadow:0 1px 3px #000}
+  .err{position:fixed;inset:0;display:grid;place-items:center;color:#c9d1d9;padding:24px;text-align:center}
+</style>
+</head>
+<body>
+  <canvas id="c"></canvas>
+  <div class="cap"><b>◉</b> z = z² + c &nbsp;·&nbsp; <a href="https://create.nft.sale/">create.nft.sale</a></div>
+  <div class="hint" id="hint">tap / click to pause</div>
+<script>
+(() => {
+  const cv = document.getElementById("c");
+  const gl = cv.getContext("webgl") || cv.getContext("experimental-webgl");
+  if(!gl){ document.body.innerHTML = '<div class="err">This browser has no WebGL — try Chrome, Edge, Firefox, or Safari.</div>'; return; }
+
+  const VS = "attribute vec2 p; void main(){ gl_Position = vec4(p,0.0,1.0); }";
+  const FS = `
+    precision highp float;
+    uniform vec2  u_res;
+    uniform vec2  u_center;
+    uniform float u_scale;    // half-height of the view in the complex plane
+    uniform float u_ccycle;   // colour phase
+    const float N = 380.0;
+
+    vec3 palette(float t){
+      // Iñigo Quílez cosine palette — electric blue → cyan → white → gold
+      vec3 a = vec3(0.52, 0.50, 0.50);
+      vec3 b = vec3(0.48, 0.50, 0.52);
+      vec3 c = vec3(1.00, 1.00, 1.00);
+      vec3 d = vec3(0.00, 0.18, 0.40);
+      return a + b*cos(6.28318530718*(c*t + d));
+    }
+    void main(){
+      vec2 uv = (gl_FragCoord.xy - 0.5*u_res) / u_res.y;
+      vec2 c  = u_center + uv * (u_scale * 2.0);
+      vec2 z  = vec2(0.0);
+      float esc = N;
+      for(float n = 0.0; n < 380.0; n += 1.0){
+        z = vec2(z.x*z.x - z.y*z.y, 2.0*z.x*z.y) + c;
+        if(dot(z,z) > 256.0){ esc = n; break; }
+      }
+      if(esc >= N){ gl_FragColor = vec4(0.015, 0.02, 0.05, 1.0); return; }
+      float mu = esc - log2(log2(dot(z,z))) + 4.0;        // smooth iteration count
+      gl_FragColor = vec4(palette(mu*0.028 + u_ccycle), 1.0);
+    }`;
+
+  const sh = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s);
+    if(!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw gl.getShaderInfoLog(s); return s; };
+  const prog = gl.createProgram();
+  gl.attachShader(prog, sh(gl.VERTEX_SHADER, VS));
+  gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, FS));
+  gl.linkProgram(prog); gl.useProgram(prog);
+
+  const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 3,-1, -1,3]), gl.STATIC_DRAW);
+  const loc = gl.getAttribLocation(prog, "p"); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+
+  const U = n => gl.getUniformLocation(prog, n);
+  const uRes = U("u_res"), uCenter = U("u_center"), uScale = U("u_scale"), uCcycle = U("u_ccycle");
+
+  const CENTER = [-0.743643887037151, 0.131825904205330]; // "seahorse valley" — detail at every scale
+  const INIT = 1.35, MAXEXP = 10.2, PERIOD = 34.0;         // ping-pong zoom (seamless loop, stays crisp)
+
+  let W, H; const resize = () => {
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.75);
+    W = Math.floor(innerWidth * dpr); H = Math.floor(innerHeight * dpr);
+    cv.width = W; cv.height = H; gl.viewport(0, 0, W, H);
+  };
+  addEventListener("resize", resize); resize();
+
+  let paused = false, t0 = performance.now(), acc = 0, last = t0;
+  const tri = x => { const f = x - Math.floor(x); return f < 0.5 ? f*2 : 2 - f*2; };  // 0→1→0
+  cv.addEventListener("pointerdown", () => { paused = !paused; document.getElementById("hint").textContent = paused ? "paused — tap to resume" : "tap / click to pause"; });
+
+  function frame(now){
+    const dt = (now - last) / 1000; last = now;
+    if(!paused) acc += dt;
+    const phase = tri(acc / PERIOD);                 // ping-pongs 0..1..0
+    const scale = INIT * Math.exp(-phase * MAXEXP);  // zoom in, then back out — seamless
+    gl.uniform2f(uRes, W, H);
+    gl.uniform2f(uCenter, CENTER[0], CENTER[1]);
+    gl.uniform1f(uScale, scale);
+    gl.uniform1f(uCcycle, acc * 0.035);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
