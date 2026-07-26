@@ -277,7 +277,7 @@
   //    <image> (SMIL href flipbook). A few seconds of compute (yields between frames so the UI stays alive). ──
   async function genMandelZoom(g){
     const hint=$("hint"), orig=hint?hint.textContent:"";
-    const N=28,S=240,CX=-0.743643887037151,CY=0.131825904205330,HALF0=1.35,MAXEXP=12.0,frames=[];
+    const N=64,S=240,CX=-0.743643887037151,CY=0.131825904205330,HALF0=1.35,MAXEXP=10.5,frames=[];
     const cv=document.createElement("canvas"); cv.width=cv.height=S; const cc=cv.getContext("2d");
     for(let k=0;k<N;k++){ if(hint) hint.textContent=`⏳ growing a zooming Mandelbrot… ${Math.round((k/N)*100)}%`;
       const zexp=(k/(N-1))*MAXEXP, half=HALF0*Math.exp(-zexp), MI=Math.min(700,Math.floor(140+zexp*44)), img=cc.createImageData(S,S), d=img.data;
@@ -290,7 +290,7 @@
       const im=document.createElementNS(SVGNS,"image"); im.setAttribute("x","-0.5"); im.setAttribute("y","-0.5"); im.setAttribute("width","1"); im.setAttribute("height","1"); im.setAttribute("preserveAspectRatio","none");
       im.setAttributeNS("http://www.w3.org/1999/xlink","xlink:href",f); im.setAttribute("opacity", k===0?"1":"0");
       const an=document.createElementNS(SVGNS,"animate"); an.setAttribute("attributeName","opacity"); an.setAttribute("values","0;1;0;0"); an.setAttribute("keyTimes",`0;${a};${b};1`);
-      an.setAttribute("dur","6s"); an.setAttribute("repeatCount","indefinite"); an.setAttribute("calcMode","discrete"); im.appendChild(an); g.appendChild(im); });
+      an.setAttribute("dur","8.5s"); an.setAttribute("repeatCount","indefinite"); an.setAttribute("calcMode","discrete"); im.appendChild(an); g.appendChild(im); });
     if(hint) hint.textContent=orig; save(); refresh(); }
 
   // ── Zoom / pan (viewBox — toSvg's getScreenCTM handles it, so drawing coords stay correct) ──
