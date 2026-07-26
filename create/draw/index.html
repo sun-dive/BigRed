@@ -429,8 +429,10 @@
 
   // ── Export a standalone ANIMATED SVG (vector + SMIL preserved: wiggle/grow/mandelbrot-cycle) — the mintable atom ──
   $("exportSvg").onclick=()=>{
-    const defs='<defs><filter id="mcyc"><feColorMatrix type="hueRotate" values="0"><animate attributeName="values" values="0;360" dur="10s" repeatCount="indefinite" calcMode="linear"/></feColorMatrix></filter></defs>';
-    const doc=`<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1000 1000" width="1000" height="1000">${defs}<rect width="1000" height="1000" fill="${bgColor()}"/>${committed.innerHTML}</svg>`;
+    const clone=svg.cloneNode(true);                    // clone the live canvas (keeps #mcyc defs, bg, committed art + all SMIL)
+    clone.querySelector("#active")?.remove(); clone.querySelector("#brushCursor")?.remove();
+    clone.setAttribute("viewBox","0 0 1000 1000"); clone.setAttribute("width","1000"); clone.setAttribute("height","1000"); // full frame, ignore zoom/pan
+    const doc='<?xml version="1.0" encoding="UTF-8"?>\n'+new XMLSerializer().serializeToString(clone); // proper XML (namespaces handled) = valid standalone SVG
     const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([doc],{type:"image/svg+xml"})); a.download="dream-canvas.svg"; a.click(); };
 
   const refresh=()=>{ $("stN").textContent=nContrib; $("stCap").textContent=CAP; $("stPrice").textContent=nContrib*SLOT_FEE+HOLDER_FEE;
