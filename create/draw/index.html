@@ -67,10 +67,12 @@
 
   <div class="toolbar">
     <div class="group"><span class="lbl">Brush</span>
-      <button class="tool on" data-tool="pen"    title="Pen — smooth ink">🖊️</button>
-      <button class="tool"    data-tool="pencil" title="Pencil — thin & crisp">✏️</button>
-      <button class="tool"    data-tool="shade"  title="Shading — soft, builds up">▓</button>
-      <button class="tool"    data-tool="eraser" title="Eraser — paints the background back">🧽</button>
+      <button class="tool on" data-tool="pen"         title="Pen — smooth solid ink">✒️</button>
+      <button class="tool"    data-tool="pencil"      title="Pencil — thin & crisp">✏️</button>
+      <button class="tool"    data-tool="shade"       title="Shading — soft, builds up">🖌️</button>
+      <button class="tool"    data-tool="highlighter" title="Highlighter — wide, see-through">🟨</button>
+      <button class="tool"    data-tool="spray"       title="Spray paint — speckled airbrush">💨</button>
+      <button class="tool"    data-tool="eraser"      title="Eraser — paints the background back">🧽</button>
     </div>
     <div class="sep"></div>
     <div class="group"><span class="lbl">Stamp</span>
@@ -162,8 +164,8 @@
     Sodium:{bg:"#0a0a0a",colors:["#ff7a18","#ffd28f","#ff4d4d","#ffe9c7","#c65102","#ffffff"]},
   };
   const WIDTHS=[3,6,12,24];
-  const BRUSH={ pen:{mult:1,op:1}, pencil:{mult:.55,op:.92}, shade:{mult:2.4,op:.22} };
-  const FREEHAND=new Set(["pen","pencil","shade","eraser"]);
+  const BRUSH={ pen:{mult:1,op:1,cap:"round"}, pencil:{mult:.55,op:.92,cap:"round"}, shade:{mult:2.4,op:.22,cap:"round"}, highlighter:{mult:3.4,op:.38,cap:"square",blend:"multiply"} };
+  const FREEHAND=new Set(["pen","pencil","shade","highlighter","eraser"]);
   const STAR=(()=>{ let d=""; for(let i=0;i<10;i++){ const r=i%2?0.42:1, a=Math.PI*i/5-Math.PI/2; d+=(i?"L":"M")+(r*Math.cos(a)).toFixed(3)+" "+(r*Math.sin(a)).toFixed(3)+" "; } return d+"Z"; })();
   const SPARK="M0 -1 L0.25 -0.25 L1 0 L0.25 0.25 L0 1 L-0.25 0.25 L-1 0 L-0.25 -0.25 Z";
   const HEART="M0 -0.4 C0.55 -0.95 1.15 -0.1 0 0.75 C-1.15 -0.1 -0.55 -0.95 0 -0.4 Z";
@@ -184,9 +186,15 @@
   const smooth=pts=>{ if(!pts.length) return ""; if(pts.length<3) return `M ${pts[0].x} ${pts[0].y}`+pts.slice(1).map(p=>` L ${p.x} ${p.y}`).join("");
     let d=`M ${pts[0].x} ${pts[0].y}`; for(let i=1;i<pts.length-1;i++){ const mx=(pts[i].x+pts[i+1].x)/2, my=(pts[i].y+pts[i+1].y)/2; d+=` Q ${pts[i].x} ${pts[i].y} ${mx} ${my}`; }
     const l=pts[pts.length-1]; return d+` L ${l.x} ${l.y}`; };
-  const strokeAttrs=el=>{ const er=tool==="eraser", b=BRUSH[tool]||{mult:1,op:1};
+  const strokeAttrs=el=>{ const er=tool==="eraser", b=BRUSH[tool]||{mult:1,op:1,cap:"round"};
     el.setAttribute("fill","none"); el.setAttribute("stroke", er?bgColor():color); el.setAttribute("stroke-width", er?width*2:width*b.mult);
-    el.setAttribute("stroke-linecap","round"); el.setAttribute("stroke-linejoin","round"); if(!er && b.op<1) el.setAttribute("stroke-opacity",b.op); };
+    el.setAttribute("stroke-linecap", b.cap||"round"); el.setAttribute("stroke-linejoin","round");
+    if(!er && b.op<1) el.setAttribute("stroke-opacity",b.op); if(b.blend) el.setAttribute("style","mix-blend-mode:"+b.blend); };
+
+  // ── Spray paint: scatter small dots within a radius each move (airbrush build-up) ──
+  const sprayAt=p=>{ const R=Math.max(6,width*2.4), n=Math.round(5+width/3), dr=Math.max(0.8,width*0.14);
+    for(let i=0;i<n;i++){ const a=Math.random()*6.2832, rr=Math.sqrt(Math.random())*R, c=document.createElementNS(SVGNS,"circle");
+      c.setAttribute("cx",(p.x+Math.cos(a)*rr).toFixed(1)); c.setAttribute("cy",(p.y+Math.sin(a)*rr).toFixed(1)); c.setAttribute("r",dr.toFixed(2)); c.setAttribute("fill",color); current.appendChild(c); } };
 
   // ── Zoom / pan (viewBox — toSvg's getScreenCTM handles it, so drawing coords stay correct) ──
   const applyView=()=>{ const vw=1000/zoom; panX=Math.max(0,Math.min(1000-vw,panX)); panY=Math.max(0,Math.min(1000-vw,panY));
@@ -215,6 +223,7 @@
     const p=toSvg(e);
     if(tool==="stamp"){ placeStamp(p); return; }
     svg.setPointerCapture(e.pointerId); drawing=true; undone=[]; points=[p];
+    if(tool==="spray"){ current=document.createElementNS(SVGNS,"g"); active.appendChild(current); sprayAt(p); refresh(); return; }
     if(FREEHAND.has(tool)){ current=document.createElementNS(SVGNS,"path"); strokeAttrs(current); current.setAttribute("d",`M ${p.x} ${p.y}`); }
     else if(tool==="line"){ current=document.createElementNS(SVGNS,"line"); strokeAttrs(current); current.setAttribute("x1",p.x); current.setAttribute("y1",p.y); current.setAttribute("x2",p.x); current.setAttribute("y2",p.y); }
     else if(tool==="rect"){ current=document.createElementNS(SVGNS,"rect"); strokeAttrs(current); current._o=p; }
@@ -223,6 +232,7 @@
   const move=e=>{
     if(panning){ panX=ps.px-(e.clientX-ps.x)*ps.scale; panY=ps.py-(e.clientY-ps.y)*ps.scale; applyView(); return; }
     if(!drawing) return; const p=toSvg(e);
+    if(tool==="spray"){ sprayAt(p); return; }
     if(FREEHAND.has(tool)){ const l=points[points.length-1]; if(Math.hypot(p.x-l.x,p.y-l.y)<2) return; points.push(p); current.setAttribute("d",smooth(points)); }
     else if(tool==="line"){ current.setAttribute("x2",p.x); current.setAttribute("y2",p.y); }
     else if(tool==="rect"){ const o=current._o; current.setAttribute("x",Math.min(o.x,p.x)); current.setAttribute("y",Math.min(o.y,p.y)); current.setAttribute("width",Math.abs(p.x-o.x)); current.setAttribute("height",Math.abs(p.y-o.y)); }
@@ -251,7 +261,8 @@
   // ── Brush cursor ──
   const cursor=$("brushCursor"), bc1=$("bc1"), bc2=$("bc2");
   const showCursor=e=>{ if(tool==="pan"){ cursor.setAttribute("opacity","0"); return; } const p=toSvg(e); cursor.setAttribute("transform",`translate(${p.x} ${p.y})`);
-    const r=Math.max(2, (tool==="eraser"?width:(BRUSH[tool]?width*BRUSH[tool].mult:width))/2); bc1.setAttribute("r",r); bc2.setAttribute("r",r); cursor.setAttribute("opacity","1"); };
+    const r = tool==="spray" ? Math.max(6,width*2.4) : tool==="eraser" ? width : Math.max(2,(BRUSH[tool]?width*BRUSH[tool].mult:width)/2);
+    bc1.setAttribute("r",r); bc2.setAttribute("r",r); cursor.setAttribute("opacity","1"); };
   svg.addEventListener("pointermove",showCursor); svg.addEventListener("pointerenter",showCursor);
   svg.addEventListener("pointerleave",()=>cursor.setAttribute("opacity","0"));
 
