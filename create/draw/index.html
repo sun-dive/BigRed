@@ -149,6 +149,7 @@
   <div class="stage">
     <div class="frame">
       <svg id="canvas" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000">
+        <defs><filter id="mcyc"><feColorMatrix type="hueRotate" values="0"><animate attributeName="values" values="0;360" dur="10s" repeatCount="indefinite" calcMode="linear"></animate></feColorMatrix></filter></defs>
         <rect id="bg" x="0" y="0" width="1000" height="1000"></rect>
         <g id="committed"></g>
         <g id="active"></g>
@@ -177,6 +178,7 @@
     </select>
     <select id="theme" title="Canvas colour theme"></select>
     <button class="act" id="viewsvg">&lt;/&gt; SVG</button>
+    <button class="act" id="exportSvg" title="Export an animated SVG — the mintable, self-animating atom">⬇ SVG</button>
     <button class="act pay" id="hq">⬇ Ultra-HQ</button>
   </footer>
 
@@ -264,9 +266,11 @@
     for(let py=0;py<S;py++){ const cy=Y0+(py/S)*(Y1-Y0); for(let px=0;px<S;px++){ const cxr=X0+(px/S)*(X1-X0); let zx=0,zy=0,i=0;
       while(i<MI && zx*zx+zy*zy<4){ const t=zx*zx-zy*zy+cxr; zy=2*zx*zy+cy; zx=t; i++; } const o=(py*S+px)*4;
       if(i>=MI){ d[o]=d[o+1]=d[o+2]=6; d[o+3]=255; } else { const t=i/MI, c=hsl2rgb(205+t*520,.78,.12+t*.56); d[o]=c[0]; d[o+1]=c[1]; d[o+2]=c[2]; d[o+3]=255; } } }
-    cc.putImageData(img,0,0); const url=cv.toDataURL();
+    cc.putImageData(img,0,0); const url=cv.toDataURL("image/webp",0.85);
     const im=document.createElementNS(SVGNS,"image"); im.setAttribute("href",url); im.setAttributeNS("http://www.w3.org/1999/xlink","xlink:href",url);
-    im.setAttribute("x","-0.5"); im.setAttribute("y","-0.5"); im.setAttribute("width","1"); im.setAttribute("height","1"); im.setAttribute("preserveAspectRatio","none"); return im; };
+    im.setAttribute("x","-0.5"); im.setAttribute("y","-0.5"); im.setAttribute("width","1"); im.setAttribute("height","1"); im.setAttribute("preserveAspectRatio","none");
+    if(wiggle) im.setAttribute("filter","url(#mcyc)");   // Wiggle on → the Mandelbrot colour-cycles forever
+    return im; };
 
   // ── Zoom / pan (viewBox — toSvg's getScreenCTM handles it, so drawing coords stay correct) ──
   const applyView=()=>{ const vw=1000/zoom; panX=Math.max(0,Math.min(1000-vw,panX)); panY=Math.max(0,Math.min(1000-vw,panY));
@@ -400,6 +404,12 @@
     img.onload=()=>{ const cv=document.createElement("canvas"); cv.width=cv.height=SIZE; cv.getContext("2d").drawImage(img,0,0,SIZE,SIZE); URL.revokeObjectURL(url);
       cv.toBlob(b=>{ const a=document.createElement("a"); a.href=URL.createObjectURL(b); a.download=`dream-canvas-${SIZE}px.png`; a.click(); },"image/png"); };
     img.onerror=()=>{ alert("Export failed in this browser — try Chrome/Edge/Firefox."); URL.revokeObjectURL(url); }; img.src=url; };
+
+  // ── Export a standalone ANIMATED SVG (vector + SMIL preserved: wiggle/grow/mandelbrot-cycle) — the mintable atom ──
+  $("exportSvg").onclick=()=>{
+    const defs='<defs><filter id="mcyc"><feColorMatrix type="hueRotate" values="0"><animate attributeName="values" values="0;360" dur="10s" repeatCount="indefinite" calcMode="linear"/></feColorMatrix></filter></defs>';
+    const doc=`<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1000 1000" width="1000" height="1000">${defs}<rect width="1000" height="1000" fill="${bgColor()}"/>${committed.innerHTML}</svg>`;
+    const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([doc],{type:"image/svg+xml"})); a.download="dream-canvas.svg"; a.click(); };
 
   const refresh=()=>{ $("stN").textContent=nContrib; $("stCap").textContent=CAP; $("stPrice").textContent=nContrib*SLOT_FEE+HOLDER_FEE;
     $("undo").disabled=!active.children.length; $("redo").disabled=!undone.length;
