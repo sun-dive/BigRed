@@ -83,6 +83,7 @@
       <button class="tool"    data-tool="shade"       title="Shading — soft, builds up">🖌️</button>
       <button class="tool"    data-tool="highlighter" title="Highlighter — wide, see-through">🟨</button>
       <button class="tool"    data-tool="spray"       title="Spray paint — speckled airbrush">💨</button>
+      <button class="tool"    data-tool="fractal"     title="Fractal brush — draw a stroke, a plant grows! (drag to aim & size)">🌿</button>
       <button class="tool"    data-tool="eraser"      title="Eraser — paints the background back">🧽</button>
     </div>
     <div class="sep"></div>
@@ -213,6 +214,22 @@
     for(let i=0;i<n;i++){ const a=Math.random()*6.2832, rr=Math.sqrt(Math.random())*R, c=document.createElementNS(SVGNS,"circle");
       c.setAttribute("cx",(p.x+Math.cos(a)*rr).toFixed(1)); c.setAttribute("cy",(p.y+Math.sin(a)*rr).toFixed(1)); c.setAttribute("r",dr.toFixed(2)); c.setAttribute("fill",color); current.appendChild(c); } };
 
+  // ── Fractal brush: build a UNIT plant once (recursive L-system), then aim+scale it to the drag ──
+  const FDEPTH=5; let fbase=null;
+  const fLine=(x1,y1,x2,y2,w)=>{ const l=document.createElementNS(SVGNS,"line");
+    l.setAttribute("x1",x1.toFixed(3)); l.setAttribute("y1",y1.toFixed(3)); l.setAttribute("x2",x2.toFixed(3)); l.setAttribute("y2",y2.toFixed(3));
+    l.setAttribute("stroke",color); l.setAttribute("stroke-width",w.toFixed(4)); l.setAttribute("stroke-linecap","round"); return l; };
+  const fGrow=(g,x,y,ang,len,depth,uw)=>{ const x2=x+Math.cos(ang)*len, y2=y+Math.sin(ang)*len;
+    g.appendChild(fLine(x,y,x2,y2, uw*(depth/FDEPTH+0.15)));
+    if(depth<=1){ const lf=document.createElementNS(SVGNS,"circle"); lf.setAttribute("cx",x2.toFixed(3)); lf.setAttribute("cy",y2.toFixed(3)); lf.setAttribute("r",(uw*1.6).toFixed(4)); lf.setAttribute("fill",color); g.appendChild(lf); return; }
+    const spread=0.36+(Math.random()-.5)*0.28, nlen=len*(0.70+Math.random()*0.08), nd=depth-1;
+    fGrow(g,x2,y2,ang-spread+(Math.random()-.5)*0.22,nlen,nd,uw);
+    fGrow(g,x2,y2,ang+spread+(Math.random()-.5)*0.22,nlen,nd,uw);
+    if(Math.random()<0.42) fGrow(g,x2,y2,ang+(Math.random()-.5)*0.3,nlen*0.88,nd,uw); };
+  const fPlace=p=>{ if(!fbase||!current) return; const dx=p.x-fbase.x, dy=p.y-fbase.y; let len=Math.hypot(dx,dy);
+    const ang=len<3?-90:Math.atan2(dy,dx)*180/Math.PI; len=Math.max(26,Math.min(420,len));
+    current.setAttribute("transform",`translate(${fbase.x} ${fbase.y}) rotate(${ang.toFixed(1)}) scale(${len.toFixed(1)})`); };
+
   // ── Zoom / pan (viewBox — toSvg's getScreenCTM handles it, so drawing coords stay correct) ──
   const applyView=()=>{ const vw=1000/zoom; panX=Math.max(0,Math.min(1000-vw,panX)); panY=Math.max(0,Math.min(1000-vw,panY));
     svg.setAttribute("viewBox",`${panX} ${panY} ${vw} ${vw}`); $("zlabel").textContent=Math.round(zoom*100)+"%"; };
@@ -241,6 +258,7 @@
     if(tool==="stamp"){ placeStamp(p); return; }
     svg.setPointerCapture(e.pointerId); drawing=true; undone=[]; points=[p];
     if(tool==="spray"){ current=document.createElementNS(SVGNS,"g"); active.appendChild(current); sprayAt(p); refresh(); return; }
+    if(tool==="fractal"){ fbase=p; current=document.createElementNS(SVGNS,"g"); fGrow(current,0,0,0,1,FDEPTH,width/160); active.appendChild(current); fPlace(p); refresh(); return; }
     if(FREEHAND.has(tool)){ current=document.createElementNS(SVGNS,"path"); strokeAttrs(current); current.setAttribute("d",`M ${p.x} ${p.y}`); }
     else if(tool==="line"){ current=document.createElementNS(SVGNS,"line"); strokeAttrs(current); current.setAttribute("x1",p.x); current.setAttribute("y1",p.y); current.setAttribute("x2",p.x); current.setAttribute("y2",p.y); }
     else if(tool==="rect"){ current=document.createElementNS(SVGNS,"rect"); strokeAttrs(current); current._o=p; }
@@ -250,6 +268,7 @@
     if(panning){ panX=ps.px-(e.clientX-ps.x)*ps.scale; panY=ps.py-(e.clientY-ps.y)*ps.scale; applyView(); return; }
     if(!drawing) return; const p=toSvg(e);
     if(tool==="spray"){ sprayAt(p); return; }
+    if(tool==="fractal"){ fPlace(p); return; }
     if(FREEHAND.has(tool)){ const l=points[points.length-1]; if(Math.hypot(p.x-l.x,p.y-l.y)<2) return; points.push(p); current.setAttribute("d",smooth(points)); }
     else if(tool==="line"){ current.setAttribute("x2",p.x); current.setAttribute("y2",p.y); }
     else if(tool==="rect"){ const o=current._o; current.setAttribute("x",Math.min(o.x,p.x)); current.setAttribute("y",Math.min(o.y,p.y)); current.setAttribute("width",Math.abs(p.x-o.x)); current.setAttribute("height",Math.abs(p.y-o.y)); }
