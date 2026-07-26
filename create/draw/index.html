@@ -6,65 +6,47 @@
 <title>Draw · create.nft.sale</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='84'>✏️</text></svg>">
 <style>
-  :root{
-    --bg:#0d1117; --panel:#161b22; --panel2:#1f2530; --line:#2b303b;
-    --ink:#e7e9ee; --dim:#9aa1af; --accent:#8b7cf6; --accent2:#5eead4;
-  }
-  *{box-sizing:border-box}
-  html,body{height:100%}
-  body{margin:0; background:var(--bg); color:var(--ink);
-    font:14px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
-    display:flex; flex-direction:column; overflow:hidden; touch-action:none;}
-
-  /* ── App nav (shared across create.nft.sale pages; back button moves between these) ── */
-  .appnav{display:flex; align-items:center; gap:14px; padding:9px 16px; background:var(--panel); border-bottom:1px solid var(--line)}
-  .appnav .brand{font-weight:750; letter-spacing:.2px; color:var(--ink); text-decoration:none; font-size:15px}
-  .appnav .brand b{color:var(--accent)}
-  .appnav .tabs{display:flex; gap:6px; margin-left:auto}
-  .appnav .tab{padding:6px 12px; border-radius:8px; color:var(--dim); text-decoration:none; font-size:13px; border:1px solid transparent}
-  .appnav .tab:hover{color:var(--ink); background:var(--panel2)}
-  .appnav .tab.on{color:#fff; background:color-mix(in srgb,var(--accent) 22%,var(--panel2)); border-color:var(--accent)}
-
-  .toolbar{display:flex; align-items:center; flex-wrap:wrap; gap:8px 14px; padding:9px 16px; border-bottom:1px solid var(--line); background:var(--panel)}
-  .group{display:flex; align-items:center; gap:6px}
-  .group .lbl{font-size:11px; text-transform:uppercase; letter-spacing:.6px; color:var(--dim); margin-right:2px}
-  .sep{width:1px; align-self:stretch; background:var(--line); margin:2px}
-  .stat{font:12px/1.4 ui-monospace,Menlo,monospace; color:var(--dim); margin-left:auto}
+  :root{--bg:#0d1117;--panel:#161b22;--panel2:#1f2530;--line:#2b303b;--ink:#e7e9ee;--dim:#9aa1af;--accent:#8b7cf6;--accent2:#5eead4}
+  *{box-sizing:border-box} html,body{height:100%}
+  body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;display:flex;flex-direction:column;overflow:hidden;touch-action:none}
+  .appnav{display:flex;align-items:center;gap:14px;padding:9px 16px;background:var(--panel);border-bottom:1px solid var(--line)}
+  .appnav .brand{font-weight:750;color:var(--ink);text-decoration:none;font-size:15px} .appnav .brand b{color:var(--accent)}
+  .appnav .tabs{display:flex;gap:6px;margin-left:auto}
+  .appnav .tab{padding:6px 12px;border-radius:8px;color:var(--dim);text-decoration:none;font-size:13px;border:1px solid transparent}
+  .appnav .tab:hover{color:var(--ink);background:var(--panel2)}
+  .appnav .tab.on{color:#fff;background:color-mix(in srgb,var(--accent) 22%,var(--panel2));border-color:var(--accent)}
+  .toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:8px 12px;padding:9px 16px;border-bottom:1px solid var(--line);background:var(--panel)}
+  .group{display:flex;align-items:center;gap:6px}
+  .group .lbl{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--dim);margin-right:2px}
+  .sep{width:1px;align-self:stretch;background:var(--line);margin:2px}
+  .stat{font:12px/1.4 ui-monospace,Menlo,monospace;color:var(--dim);margin-left:auto}
   .stat b{color:var(--ink)} .stat .seal{color:var(--accent2)} .stat .price b{color:var(--accent2)}
-  button.tool,select,button.act{background:var(--panel2); color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:7px 10px; font-size:13px; cursor:pointer; line-height:1}
-  button.tool{min-width:38px}
-  button.tool.on{border-color:var(--accent); background:color-mix(in srgb,var(--accent) 22%,var(--panel2)); color:#fff}
-  button.act{font-weight:600} button.act.primary{background:var(--accent); border-color:var(--accent); color:#0b0b12}
-  button.act.pay{background:var(--accent2); border-color:var(--accent2); color:#07120f}
-  button:disabled{opacity:.4; cursor:not-allowed}
-  .swatch{width:24px; height:24px; border-radius:50%; border:2px solid rgba(255,255,255,.15); cursor:pointer; padding:0}
-  .swatch.on{border-color:#fff; box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--accent)}
-  .width{width:34px; height:34px; display:grid; place-items:center; border-radius:8px; background:var(--panel2); border:1px solid var(--line); cursor:pointer}
-  .width.on{border-color:var(--accent)} .width i{display:block; background:var(--ink); border-radius:99px}
-  .swatch.custom{background:conic-gradient(from 0deg,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)}
-  .picker{position:absolute; top:calc(100% + 8px); left:0; z-index:30; background:var(--panel2); border:1px solid var(--line); border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:8px; box-shadow:0 14px 34px rgba(0,0,0,.55)}
-  .picker[hidden]{display:none}
-  .picker canvas{display:block; border-radius:6px; cursor:crosshair; touch-action:none}
-  .prow{display:flex; align-items:center; gap:8px}
-  .prev{width:28px; height:28px; border-radius:6px; border:1px solid var(--line); flex:none}
-  #hex{flex:1; width:120px; background:var(--panel); color:var(--ink); border:1px solid var(--line); border-radius:6px; padding:6px 8px; font:13px ui-monospace,Menlo,monospace; text-transform:uppercase}
-
-  .stage{flex:1; display:flex; align-items:center; justify-content:center; padding:18px; min-height:0}
-  .frame{position:relative; width:min(72vh,96vw); aspect-ratio:1; border-radius:14px; overflow:hidden; box-shadow:0 10px 40px rgba(0,0,0,.5),0 0 0 1px var(--line)}
-  svg{display:block; width:100%; height:100%; cursor:crosshair; touch-action:none}
-  .hint{position:absolute; left:12px; bottom:10px; font-size:11px; color:rgba(255,255,255,.55); background:rgba(0,0,0,.35); padding:3px 8px; border-radius:6px; pointer-events:none; backdrop-filter:blur(2px)}
-
-  .drawer{max-height:0; overflow:hidden; transition:max-height .2s ease; background:var(--panel); border-top:1px solid var(--line)}
-  .drawer.open{max-height:38vh; overflow:auto}
-  .drawer pre{margin:0; padding:14px 16px; font:12px/1.5 ui-monospace,Menlo,monospace; color:var(--dim); white-space:pre-wrap; word-break:break-all}
+  button.tool,select,button.act{background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:7px 9px;font-size:14px;cursor:pointer;line-height:1}
+  button.tool{min-width:36px}
+  button.tool.on{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 22%,var(--panel2));color:#fff}
+  button.act{font-weight:600;font-size:13px} button.act.primary{background:var(--accent);border-color:var(--accent);color:#0b0b12}
+  button.act.pay{background:var(--accent2);border-color:var(--accent2);color:#07120f}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  .swatch{width:24px;height:24px;border-radius:50%;border:2px solid rgba(255,255,255,.15);cursor:pointer;padding:0}
+  .swatch.on{border-color:#fff;box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--accent)}
+  .width{width:34px;height:34px;display:grid;place-items:center;border-radius:8px;background:var(--panel2);border:1px solid var(--line);cursor:pointer}
+  .width.on{border-color:var(--accent)} .width i{display:block;background:var(--ink);border-radius:99px}
+  input[type=color]{-webkit-appearance:none;appearance:none;width:32px;height:32px;border:1px solid var(--line);border-radius:8px;padding:0;background:none;cursor:pointer}
+  input[type=color]::-webkit-color-swatch-wrapper{padding:2px} input[type=color]::-webkit-color-swatch{border:none;border-radius:6px} input[type=color]::-moz-color-swatch{border:none;border-radius:6px}
+  #hex{width:92px;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:7px 8px;font:13px ui-monospace,Menlo,monospace;text-transform:uppercase}
+  .stage{flex:1;display:flex;align-items:center;justify-content:center;padding:18px;min-height:0}
+  .frame{position:relative;width:min(72vh,96vw);aspect-ratio:1;border-radius:14px;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,.5),0 0 0 1px var(--line)}
+  svg{display:block;width:100%;height:100%;cursor:crosshair;touch-action:none}
+  .hint{position:absolute;left:12px;bottom:10px;font-size:11px;color:rgba(255,255,255,.55);background:rgba(0,0,0,.35);padding:3px 8px;border-radius:6px;pointer-events:none;backdrop-filter:blur(2px)}
+  .drawer{max-height:0;overflow:hidden;transition:max-height .2s ease;background:var(--panel);border-top:1px solid var(--line)}
+  .drawer.open{max-height:38vh;overflow:auto}
+  .drawer pre{margin:0;padding:14px 16px;font:12px/1.5 ui-monospace,Menlo,monospace;color:var(--dim);white-space:pre-wrap;word-break:break-all}
   .drawer pre .g{color:var(--accent2)}
-
-  footer{display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding:10px 16px; border-top:1px solid var(--line); background:var(--panel)}
-  .ledger{display:flex; align-items:center; gap:6px; flex:1; min-width:160px; overflow:auto; font:12px ui-monospace,Menlo,monospace}
-  .chip{display:inline-flex; align-items:center; gap:5px; padding:3px 8px; border-radius:99px; background:var(--panel2); border:1px solid var(--line); color:var(--dim); white-space:nowrap}
-  .chip i{width:9px; height:9px; border-radius:50%}
-  .spacer{flex:1}
-  @media (max-width:640px){ .appnav .brand span{display:none} }
+  footer{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 16px;border-top:1px solid var(--line);background:var(--panel)}
+  .ledger{display:flex;align-items:center;gap:6px;flex:1;min-width:140px;overflow:auto;font:12px ui-monospace,Menlo,monospace}
+  .chip{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:99px;background:var(--panel2);border:1px solid var(--line);color:var(--dim);white-space:nowrap}
+  .chip i{width:9px;height:9px;border-radius:50%} .spacer{flex:1}
+  @media (max-width:640px){.appnav .brand span{display:none}}
 </style>
 </head>
 <body>
@@ -78,32 +60,39 @@
   </nav>
 
   <div class="toolbar">
-    <div class="group"><span class="lbl">Tool</span>
-      <button class="tool on" data-tool="brush" title="Freehand brush">✏️</button>
+    <div class="group"><span class="lbl">Brush</span>
+      <button class="tool on" data-tool="pen"    title="Pen — smooth ink">🖊️</button>
+      <button class="tool"    data-tool="pencil" title="Pencil — thin & crisp">✏️</button>
+      <button class="tool"    data-tool="shade"  title="Shading — soft, builds up">▓</button>
+      <button class="tool"    data-tool="eraser" title="Eraser — paints the background back">🧽</button>
+    </div>
+    <div class="sep"></div>
+    <div class="group"><span class="lbl">Stamp</span>
+      <button class="tool" data-tool="stamp" title="Stamp — click to place a shape">⭐</button>
+      <select id="stampShape" title="Stamp shape"><option>★</option><option>●</option><option>♥</option><option>✦</option></select>
+    </div>
+    <div class="sep"></div>
+    <div class="group"><span class="lbl">Shape</span>
       <button class="tool" data-tool="line" title="Line">╱</button>
       <button class="tool" data-tool="rect" title="Rectangle">▭</button>
       <button class="tool" data-tool="ellipse" title="Ellipse">◯</button>
-      <button class="tool" id="wiggle" title="Wiggle — make your strokes come alive (WigglyPaint-style)" style="min-width:auto;padding:7px 9px">🌀</button>
     </div>
+    <div class="sep"></div>
+    <button class="tool" id="wiggle" title="Wiggle — make strokes come alive (WigglyPaint-style)" style="min-width:auto;padding:7px 9px">🌀</button>
     <div class="sep"></div>
     <div class="group" id="widths"><span class="lbl">Size</span></div>
     <div class="sep"></div>
-    <div class="group" id="palette"><span class="lbl">Palette</span></div>
-    <div class="group" style="position:relative">
-      <button class="swatch custom" id="customBtn" title="Custom colour — hue, saturation, brightness + hex"></button>
-      <div class="picker" id="picker" hidden>
-        <canvas id="sv" width="200" height="150"></canvas>
-        <canvas id="hue" width="200" height="14"></canvas>
-        <div class="prow"><span class="prev" id="prev"></span><input id="hex" type="text" spellcheck="false" maxlength="7" aria-label="Hex colour"></div>
-      </div>
+    <div class="group"><span class="lbl">Colour</span>
+      <input type="color" id="nativeColor" value="#8b7cf6" title="Pick any colour — hue, saturation, brightness">
+      <input id="hex" type="text" spellcheck="false" maxlength="7" aria-label="Hex colour" title="Type a hex colour">
     </div>
+    <div class="group" id="palette"></div>
     <div class="sep"></div>
     <div class="group">
       <button class="tool" id="undo" title="Undo last stroke">↶</button>
       <button class="tool" id="redo" title="Redo">↷</button>
     </div>
     <div class="stat">
-      <span>theme <b id="stTheme">Aurora</b></span> ·
       <span>marks <b><span id="stN">0</span>/<span id="stCap">50</span></b><span id="stSeal" class="seal"></span></span> ·
       <span class="price">buy §<b id="stPrice">0</b></span>
     </div>
@@ -120,7 +109,7 @@
           <circle id="bc2" r="3" fill="none" stroke="#fff" stroke-width="0.8"></circle>
         </g>
       </svg>
-      <div class="hint">draw a stroke → “Add mark” to commit it · committed marks lock (additive only) · your work auto-saves</div>
+      <div class="hint">draw → “Add mark” to commit (committed marks lock) · your work auto-saves</div>
     </div>
   </div>
 
@@ -129,10 +118,10 @@
   <footer>
     <button class="act primary" id="commit">＋ Add mark</button>
     <button class="act" id="clearSess">Clear session</button>
-    <button class="act" id="newCanvas" title="Start a fresh canvas (clears everything)">🗑 New canvas</button>
+    <button class="act" id="newCanvas" title="Start a fresh canvas (clears everything)">🗑 New</button>
     <div class="ledger" id="ledger"></div>
     <div class="spacer"></div>
-    <select id="theme" title="Canvas theme (fixed at genesis in the real thing)"></select>
+    <select id="theme" title="Canvas theme"></select>
     <button class="act" id="viewsvg">&lt;/&gt; SVG</button>
     <button class="act pay" id="hq">⬇ Ultra-HQ</button>
   </footer>
@@ -140,10 +129,8 @@
 <script>
 (() => {
   const SVGNS="http://www.w3.org/2000/svg", $=id=>document.getElementById(id);
-  const svg=$("canvas"), committed=$("committed"), active=$("active"), bg=$("bg");
+  const svg=$("canvas"), committed=$("committed"), active=$("active"), bg=$("bg"), ledger=$("ledger");
   const STORE="createNftSale.draw.v1";
-
-  // Genesis "constitution" (fixed at the blank-canvas mint in the real thing)
   const CAP=50, SLOT_FEE=1, HOLDER_FEE=1;
   const THEMES={
     Aurora:{bg:"#0b1020",colors:["#7df9ff","#b794f6","#f472b6","#fbbf24","#34d399","#f8fafc"]},
@@ -152,162 +139,126 @@
     Sodium:{bg:"#0a0a0a",colors:["#ff7a18","#ffd28f","#ff4d4d","#ffe9c7","#c65102","#ffffff"]},
   };
   const WIDTHS=[3,6,12,24];
+  const BRUSH={ pen:{mult:1,op:1}, pencil:{mult:.55,op:.92}, shade:{mult:2.4,op:.22} };
+  const FREEHAND=new Set(["pen","pencil","shade","eraser"]);
+  const STAR=(()=>{ let d=""; for(let i=0;i<10;i++){ const r=i%2?0.42:1, a=Math.PI*i/5-Math.PI/2; d+=(i?"L":"M")+(r*Math.cos(a)).toFixed(3)+" "+(r*Math.sin(a)).toFixed(3)+" "; } return d+"Z"; })();
+  const SPARK="M0 -1 L0.25 -0.25 L1 0 L0.25 0.25 L0 1 L-0.25 0.25 L-1 0 L-0.25 -0.25 Z";
+  const HEART="M0 -0.4 C0.55 -0.95 1.15 -0.1 0 0.75 C-1.15 -0.1 -0.55 -0.95 0 -0.4 Z";
+  const STAMP={ "★":STAR, "✦":SPARK, "♥":HEART };
 
-  let tool="brush", color=THEMES.Aurora.colors[0], width=6, themeName="Aurora";
+  let tool="pen", color="#8b7cf6", width=6, themeName="Aurora", wiggle=false;
   let drawing=false, current=null, points=[], undone=[], nContrib=0;
+  const bgColor=()=>THEMES[themeName].bg;
 
-  // ── Persistence (in-progress + committed work survives reload) ──
-  const save=()=>{ try{ localStorage.setItem(STORE, JSON.stringify({
-    t:themeName, n:nContrib, c:committed.innerHTML, a:active.innerHTML })); }catch(_){} };
+  // ── Persistence ──
+  const save=()=>{ try{ localStorage.setItem(STORE, JSON.stringify({ t:themeName, n:nContrib, c:committed.innerHTML, a:active.innerHTML })); }catch(_){} };
   const load=()=>{ try{ const s=JSON.parse(localStorage.getItem(STORE)); if(!s) return;
-    if(s.t && THEMES[s.t]) themeName=s.t;
-    committed.innerHTML=s.c||""; active.innerHTML=s.a||""; nContrib=s.n||0;
-    rebuildLedger();
-  }catch(_){} };
+    if(s.t && THEMES[s.t]) themeName=s.t; committed.innerHTML=s.c||""; active.innerHTML=s.a||""; nContrib=s.n||0; rebuildLedger(); }catch(_){} };
 
-  const toSvg=e=>{ const p=svg.createSVGPoint(); p.x=e.clientX; p.y=e.clientY;
-    const q=p.matrixTransform(svg.getScreenCTM().inverse());
-    return {x:Math.round(q.x*10)/10, y:Math.round(q.y*10)/10}; };
-
-  const smooth=pts=>{ if(!pts.length) return "";
-    if(pts.length<3) return `M ${pts[0].x} ${pts[0].y}`+pts.slice(1).map(p=>` L ${p.x} ${p.y}`).join("");
-    let d=`M ${pts[0].x} ${pts[0].y}`;
-    for(let i=1;i<pts.length-1;i++){ const mx=(pts[i].x+pts[i+1].x)/2, my=(pts[i].y+pts[i+1].y)/2;
-      d+=` Q ${pts[i].x} ${pts[i].y} ${mx} ${my}`; }
+  const toSvg=e=>{ const p=svg.createSVGPoint(); p.x=e.clientX; p.y=e.clientY; const q=p.matrixTransform(svg.getScreenCTM().inverse()); return {x:Math.round(q.x*10)/10, y:Math.round(q.y*10)/10}; };
+  const smooth=pts=>{ if(!pts.length) return ""; if(pts.length<3) return `M ${pts[0].x} ${pts[0].y}`+pts.slice(1).map(p=>` L ${p.x} ${p.y}`).join("");
+    let d=`M ${pts[0].x} ${pts[0].y}`; for(let i=1;i<pts.length-1;i++){ const mx=(pts[i].x+pts[i+1].x)/2, my=(pts[i].y+pts[i+1].y)/2; d+=` Q ${pts[i].x} ${pts[i].y} ${mx} ${my}`; }
     const l=pts[pts.length-1]; return d+` L ${l.x} ${l.y}`; };
+  const strokeAttrs=el=>{ const er=tool==="eraser", b=BRUSH[tool]||{mult:1,op:1};
+    el.setAttribute("fill","none"); el.setAttribute("stroke", er?bgColor():color); el.setAttribute("stroke-width", er?width*2:width*b.mult);
+    el.setAttribute("stroke-linecap","round"); el.setAttribute("stroke-linejoin","round"); if(!er && b.op<1) el.setAttribute("stroke-opacity",b.op); };
 
-  const strokeAttrs=el=>{ el.setAttribute("fill","none"); el.setAttribute("stroke",color);
-    el.setAttribute("stroke-width",width); el.setAttribute("stroke-linecap","round"); el.setAttribute("stroke-linejoin","round"); };
+  // ── Stamp ──
+  const placeStamp=p=>{ const s=Math.max(6,width*2.6), shp=$("stampShape").value;
+    let el; if(shp==="●"){ el=document.createElementNS(SVGNS,"circle"); el.setAttribute("r",1); } else { el=document.createElementNS(SVGNS,"path"); el.setAttribute("d",STAMP[shp]||STAR); }
+    el.setAttribute("fill",color); const g=document.createElementNS(SVGNS,"g"); g.setAttribute("transform",`translate(${p.x} ${p.y}) scale(${s})`); g.appendChild(el); active.appendChild(g); undone=[]; save(); refresh(); };
 
-  const start=e=>{ e.preventDefault(); svg.setPointerCapture(e.pointerId); drawing=true; undone=[];
-    const p=toSvg(e); points=[p];
-    if(tool==="brush"){ current=document.createElementNS(SVGNS,"path"); strokeAttrs(current); current.setAttribute("d",`M ${p.x} ${p.y}`); }
+  // ── Drawing ──
+  const start=e=>{ e.preventDefault(); const p=toSvg(e);
+    if(tool==="stamp"){ placeStamp(p); return; }
+    svg.setPointerCapture(e.pointerId); drawing=true; undone=[]; points=[p];
+    if(FREEHAND.has(tool)){ current=document.createElementNS(SVGNS,"path"); strokeAttrs(current); current.setAttribute("d",`M ${p.x} ${p.y}`); }
     else if(tool==="line"){ current=document.createElementNS(SVGNS,"line"); strokeAttrs(current); current.setAttribute("x1",p.x); current.setAttribute("y1",p.y); current.setAttribute("x2",p.x); current.setAttribute("y2",p.y); }
     else if(tool==="rect"){ current=document.createElementNS(SVGNS,"rect"); strokeAttrs(current); current._o=p; }
     else { current=document.createElementNS(SVGNS,"ellipse"); strokeAttrs(current); current._o=p; }
     active.appendChild(current); refresh(); };
   const move=e=>{ if(!drawing) return; const p=toSvg(e);
-    if(tool==="brush"){ const l=points[points.length-1]; if(Math.hypot(p.x-l.x,p.y-l.y)<2) return; points.push(p); current.setAttribute("d",smooth(points)); }
+    if(FREEHAND.has(tool)){ const l=points[points.length-1]; if(Math.hypot(p.x-l.x,p.y-l.y)<2) return; points.push(p); current.setAttribute("d",smooth(points)); }
     else if(tool==="line"){ current.setAttribute("x2",p.x); current.setAttribute("y2",p.y); }
     else if(tool==="rect"){ const o=current._o; current.setAttribute("x",Math.min(o.x,p.x)); current.setAttribute("y",Math.min(o.y,p.y)); current.setAttribute("width",Math.abs(p.x-o.x)); current.setAttribute("height",Math.abs(p.y-o.y)); }
     else { const o=current._o; current.setAttribute("cx",(o.x+p.x)/2); current.setAttribute("cy",(o.y+p.y)/2); current.setAttribute("rx",Math.abs(p.x-o.x)/2); current.setAttribute("ry",Math.abs(p.y-o.y)/2); } };
   const end=e=>{ if(!drawing) return; drawing=false; try{svg.releasePointerCapture(e.pointerId);}catch(_){}
     if(current&&current._o) delete current._o;
-    if(wiggle && current && current.tagName==="path" && points.length>1) boil(current,points);
+    if(wiggle && tool!=="eraser" && current && current.tagName==="path" && points.length>1) boil(current,points);
     save(); refresh(); };
   svg.addEventListener("pointerdown",start); svg.addEventListener("pointermove",move);
   svg.addEventListener("pointerup",end); svg.addEventListener("pointercancel",end);
 
-  // ── Wiggle: bake a 3-frame "boil" (jittered path variants) into a SMIL <animate> → the stroke wiggles
-  //    forever, natively, no JS, a few hundred bytes; survives save/reload; the subtle-animation north star. ──
-  let wiggle=false;
-  $("wiggle").onclick=()=>{ wiggle=!wiggle; $("wiggle").classList.toggle("on",wiggle); };
+  // ── Wiggle: 3-frame "boil" baked as a SMIL <animate> (native, tiny, survives reload) ──
   const J=7, jitter=pts=>pts.map(p=>({x:p.x+(Math.random()-.5)*2*J, y:p.y+(Math.random()-.5)*2*J}));
-  const boil=(el,pts)=>{ const f=[smooth(pts),smooth(jitter(pts)),smooth(jitter(pts))];
-    el.setAttribute("d",f[0]);
-    const an=document.createElementNS(SVGNS,"animate");
-    an.setAttribute("attributeName","d"); an.setAttribute("values",f.join(";"));
-    an.setAttribute("dur","0.4s"); an.setAttribute("repeatCount","indefinite"); an.setAttribute("calcMode","discrete");
-    el.appendChild(an); };
+  const boil=(el,pts)=>{ const f=[smooth(pts),smooth(jitter(pts)),smooth(jitter(pts))]; el.setAttribute("d",f[0]);
+    const an=document.createElementNS(SVGNS,"animate"); an.setAttribute("attributeName","d"); an.setAttribute("values",f.join(";"));
+    an.setAttribute("dur","0.4s"); an.setAttribute("repeatCount","indefinite"); an.setAttribute("calcMode","discrete"); el.appendChild(an); };
 
-  // ── Brush cursor: a ring at the pointer sized to the brush, so you see where/how big the stroke starts ──
+  // ── Brush cursor ──
   const cursor=$("brushCursor"), bc1=$("bc1"), bc2=$("bc2");
   const showCursor=e=>{ const p=toSvg(e); cursor.setAttribute("transform",`translate(${p.x} ${p.y})`);
-    const r=Math.max(2,width/2); bc1.setAttribute("r",r); bc2.setAttribute("r",r); cursor.setAttribute("opacity","1"); };
-  svg.addEventListener("pointermove",showCursor);
-  svg.addEventListener("pointerenter",showCursor);
+    const r=Math.max(2, (tool==="eraser"?width:width*(BRUSH[tool]?BRUSH[tool].mult:1))/2 * (tool==="eraser"?2:1)); bc1.setAttribute("r",r); bc2.setAttribute("r",r); cursor.setAttribute("opacity","1"); };
+  svg.addEventListener("pointermove",showCursor); svg.addEventListener("pointerenter",showCursor);
   svg.addEventListener("pointerleave",()=>cursor.setAttribute("opacity","0"));
 
+  // ── Undo / redo / clear / new ──
   $("undo").onclick=()=>{ const els=[...active.children]; if(!els.length) return; undone.push(els[els.length-1]); active.removeChild(els[els.length-1]); save(); refresh(); };
   $("redo").onclick=()=>{ const el=undone.pop(); if(el){ active.appendChild(el); save(); refresh(); } };
   $("clearSess").onclick=()=>{ active.innerHTML=""; undone=[]; save(); refresh(); };
-  $("newCanvas").onclick=()=>{ if(!confirm("Start a fresh canvas? This clears all marks on this device.")) return;
-    committed.innerHTML=""; active.innerHTML=""; ledger.innerHTML=""; nContrib=0; undone=[]; save(); refresh(); };
+  $("newCanvas").onclick=()=>{ if(!confirm("Start a fresh canvas? This clears all marks on this device.")) return; committed.innerHTML=""; active.innerHTML=""; ledger.innerHTML=""; nContrib=0; undone=[]; save(); refresh(); };
 
+  // ── Commit ──
   $("commit").onclick=()=>{ if(nContrib>=CAP || !active.children.length) return;
     const g=document.createElementNS(SVGNS,"g"); g.setAttribute("class","contribution"); g.setAttribute("data-fee",SLOT_FEE); g.setAttribute("data-by","you");
-    while(active.firstChild) g.appendChild(active.firstChild);
-    committed.appendChild(g); nContrib++; undone=[]; chipFor(g,nContrib); save(); refresh(); };
-
-  const ledger=$("ledger");
-  const chipFor=(g,i)=>{ const f=g.querySelector("[stroke]"); const c=f?f.getAttribute("stroke"):"#888";
-    const chip=document.createElement("span"); chip.className="chip"; chip.innerHTML=`<i style="background:${c}"></i>#${i} §${SLOT_FEE}`;
-    ledger.appendChild(chip); ledger.scrollLeft=ledger.scrollWidth; };
+    while(active.firstChild) g.appendChild(active.firstChild); committed.appendChild(g); nContrib++; undone=[]; chipFor(g,nContrib); save(); refresh(); };
+  const chipFor=(g,i)=>{ const f=g.querySelector("[stroke],[fill]"); const c=(f&&(f.getAttribute("stroke")||f.getAttribute("fill")))||"#888";
+    const chip=document.createElement("span"); chip.className="chip"; chip.innerHTML=`<i style="background:${c}"></i>#${i} §${SLOT_FEE}`; ledger.appendChild(chip); ledger.scrollLeft=ledger.scrollWidth; };
   const rebuildLedger=()=>{ ledger.innerHTML=""; [...committed.children].forEach((g,i)=>chipFor(g,i+1)); };
 
-  // Palette / widths / theme
-  const paletteEl=$("palette"), widthsEl=$("widths");
-  const buildPalette=()=>{ [...paletteEl.querySelectorAll(".swatch")].forEach(s=>s.remove());
-    THEMES[themeName].colors.forEach((c,i)=>{ const b=document.createElement("button"); b.className="swatch"+(i===0?" on":""); b.style.background=c; b.title=c;
-      b.onclick=()=>{ color=c; paletteEl.querySelectorAll(".swatch").forEach(x=>x.classList.remove("on")); b.classList.add("on"); $("customBtn")?.classList.remove("on"); };
-      paletteEl.appendChild(b); }); color=THEMES[themeName].colors[0]; };
+  // ── Tools ──
+  document.querySelectorAll("button.tool[data-tool]").forEach(b=>{ b.onclick=()=>{ tool=b.dataset.tool;
+    document.querySelectorAll("button.tool[data-tool]").forEach(x=>x.classList.remove("on")); b.classList.add("on"); }; });
+  $("wiggle").onclick=()=>{ wiggle=!wiggle; $("wiggle").classList.toggle("on",wiggle); };
+
+  // ── Colour: native picker + hex + themed presets ──
+  const nc=$("nativeColor"), hexIn=$("hex"), paletteEl=$("palette");
+  const setColor=v=>{ color=v; nc.value=v; hexIn.value=v.toUpperCase(); paletteEl.querySelectorAll(".swatch").forEach(x=>x.classList.remove("on")); };
+  nc.oninput=()=>setColor(nc.value);
+  hexIn.onchange=()=>{ let v=hexIn.value.trim().replace(/^#?/,""); if(/^([0-9a-f]{6})$/i.test(v)) setColor("#"+v.toLowerCase()); else if(/^([0-9a-f]{3})$/i.test(v)) setColor("#"+[...v].map(c=>c+c).join("").toLowerCase()); else hexIn.value=color.toUpperCase(); };
+  const buildPalette=()=>{ paletteEl.innerHTML="<span class='lbl'>Palette</span>";
+    THEMES[themeName].colors.forEach(c=>{ const b=document.createElement("button"); b.className="swatch"; b.style.background=c; b.title=c;
+      b.onclick=()=>{ setColor(c); b.classList.add("on"); }; paletteEl.appendChild(b); }); };
+
+  // ── Widths / theme ──
+  const widthsEl=$("widths");
   WIDTHS.forEach(w=>{ const b=document.createElement("button"); b.className="width"+(w===width?" on":""); b.title=w+"px";
     const d=document.createElement("i"); const s=Math.max(3,Math.min(20,w)); d.style.width=s+"px"; d.style.height=s+"px"; b.appendChild(d);
     b.onclick=()=>{ width=w; widthsEl.querySelectorAll(".width").forEach(x=>x.classList.remove("on")); b.classList.add("on"); }; widthsEl.appendChild(b); });
   const themeSel=$("theme");
   Object.keys(THEMES).forEach(n=>{ const o=document.createElement("option"); o.value=n; o.textContent="Theme: "+n; themeSel.appendChild(o); });
   themeSel.onchange=()=>{ themeName=themeSel.value; applyTheme(); save(); };
-  const applyTheme=()=>{ bg.setAttribute("fill",THEMES[themeName].bg); $("stTheme").textContent=themeName; themeSel.value=themeName; buildPalette(); };
+  const applyTheme=()=>{ bg.setAttribute("fill",bgColor()); themeSel.value=themeName; buildPalette(); };
 
-  document.querySelectorAll("button.tool[data-tool]").forEach(b=>{ b.onclick=()=>{ tool=b.dataset.tool;
-    document.querySelectorAll("button.tool[data-tool]").forEach(x=>x.classList.remove("on")); b.classList.add("on"); }; });
-
-  // ── Custom colour picker (HSV saturation/brightness square + hue slider + hex) ──
-  (() => {
-    const picker=$("picker"), svc=$("sv"), huec=$("hue"), prev=$("prev"), hexIn=$("hex"), btn=$("customBtn");
-    const sx=svc.getContext("2d"), hx=huec.getContext("2d");
-    let H=265, S=.55, V=.9;
-    const hsv2rgb=(h,s,v)=>{ h=((h%360)+360)%360/60; const c=v*s, x=c*(1-Math.abs(h%2-1)), m=v-c; let a;
-      if(h<1)a=[c,x,0]; else if(h<2)a=[x,c,0]; else if(h<3)a=[0,c,x]; else if(h<4)a=[0,x,c]; else if(h<5)a=[x,0,c]; else a=[c,0,x];
-      return a.map(n=>Math.round((n+m)*255)); };
-    const hex=(r,g,b)=>"#"+[r,g,b].map(n=>n.toString(16).padStart(2,"0")).join("");
-    const parseHex=h=>{ h=h.replace("#",""); if(h.length===3)h=[...h].map(c=>c+c).join(""); return [0,2,4].map(i=>parseInt(h.slice(i,i+2),16)); };
-    const rgb2hsv=(r,g,b)=>{ r/=255;g/=255;b/=255; const mx=Math.max(r,g,b),mn=Math.min(r,g,b),d=mx-mn; let h=0;
-      if(d){ if(mx===r)h=((g-b)/d+6)%6; else if(mx===g)h=(b-r)/d+2; else h=(r-g)/d+4; h*=60; } return [h, mx?d/mx:0, mx]; };
-    const paintHue=()=>{ for(let x=0;x<huec.width;x++){ const[r,g,b]=hsv2rgb(x/huec.width*360,1,1); hx.fillStyle=`rgb(${r},${g},${b})`; hx.fillRect(x,0,1,huec.height); }
-      const cx=H/360*huec.width; hx.fillStyle="#fff"; hx.fillRect(cx-1,0,2,huec.height); hx.strokeStyle="rgba(0,0,0,.5)"; hx.strokeRect(cx-1.5,.5,3,huec.height-1); };
-    const paintSV=()=>{ const w=svc.width,h=svc.height; const[r,g,b]=hsv2rgb(H,1,1); sx.fillStyle=`rgb(${r},${g},${b})`; sx.fillRect(0,0,w,h);
-      let gx=sx.createLinearGradient(0,0,w,0); gx.addColorStop(0,"#fff"); gx.addColorStop(1,"rgba(255,255,255,0)"); sx.fillStyle=gx; sx.fillRect(0,0,w,h);
-      let gy=sx.createLinearGradient(0,0,0,h); gy.addColorStop(0,"rgba(0,0,0,0)"); gy.addColorStop(1,"#000"); sx.fillStyle=gy; sx.fillRect(0,0,w,h);
-      const px=S*w, py=(1-V)*h; sx.lineWidth=2; sx.strokeStyle="#fff"; sx.beginPath(); sx.arc(px,py,6,0,7); sx.stroke(); sx.lineWidth=1; sx.strokeStyle="#000"; sx.beginPath(); sx.arc(px,py,6,0,7); sx.stroke(); };
-    const apply=()=>{ const[r,g,b]=hsv2rgb(H,S,V); color=hex(r,g,b); prev.style.background=color; hexIn.value=color; btn.style.background=color;
-      paletteEl.querySelectorAll(".swatch").forEach(x=>x.classList.remove("on")); btn.classList.add("on"); };
-    const svAt=e=>{ const r=svc.getBoundingClientRect(); S=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width)); V=1-Math.max(0,Math.min(1,(e.clientY-r.top)/r.height)); paintSV(); apply(); };
-    const hueAt=e=>{ const r=huec.getBoundingClientRect(); H=Math.max(0,Math.min(360,(e.clientX-r.left)/r.width*360)); paintHue(); paintSV(); apply(); };
-    const drag=(el,fn)=>{ el.addEventListener("pointerdown",e=>{ e.preventDefault(); el.setPointerCapture(e.pointerId); fn(e);
-      const mv=ev=>fn(ev); el.addEventListener("pointermove",mv); el.addEventListener("pointerup",()=>el.removeEventListener("pointermove",mv),{once:true}); }); };
-    drag(svc,svAt); drag(huec,hueAt);
-    hexIn.addEventListener("change",()=>{ const v=hexIn.value.trim().replace(/^#/,""); if(!/^([0-9a-f]{3}|[0-9a-f]{6})$/i.test(v)){ hexIn.value=color; return; }
-      const[r,g,b]=parseHex(v); [H,S,V]=rgb2hsv(r,g,b); paintHue(); paintSV(); apply(); });
-    btn.onclick=e=>{ e.stopPropagation(); picker.hidden=!picker.hidden; if(!picker.hidden){ paintHue(); paintSV(); } };
-    document.addEventListener("pointerdown",e=>{ if(!picker.hidden && !picker.contains(e.target) && e.target!==btn) picker.hidden=true; });
-    const[ir,ig,ib]=hsv2rgb(H,S,V); const ih=hex(ir,ig,ib); btn.style.background=ih; prev.style.background=ih; hexIn.value=ih; paintHue(); paintSV();
-  })();
-
+  // ── SVG source viewer ──
   let drawerOpen=false;
   $("viewsvg").onclick=()=>{ drawerOpen=!drawerOpen; $("drawer").classList.toggle("open",drawerOpen); renderSource(); };
-  const renderSource=()=>{ if(!drawerOpen) return; const html=committed.innerHTML.trim()||"<!-- no committed marks yet -->";
-    const bytes=new Blob([html]).size;
-    $("svgview").innerHTML=`<span class="g">&lt;!-- ${nContrib} mark atom(s) · ${bytes} bytes on-chain · rendered natively --&gt;</span>\n`+
-      html.replace(/</g,"&lt;").replace(/&lt;g /g,'<span class="g">&lt;g </span>'); };
+  const renderSource=()=>{ if(!drawerOpen) return; const html=committed.innerHTML.trim()||"<!-- no committed marks yet -->"; const bytes=new Blob([html]).size;
+    $("svgview").innerHTML=`<span class="g">&lt;!-- ${nContrib} mark atom(s) · ${bytes} bytes on-chain · rendered natively --&gt;</span>\n`+html.replace(/</g,"&lt;").replace(/&lt;g /g,'<span class="g">&lt;g </span>'); };
 
+  // ── Ultra-HQ export ──
   $("hq").onclick=()=>{ const SIZE=3000; const clone=svg.cloneNode(true); clone.querySelector("#active")?.remove(); clone.querySelector("#brushCursor")?.remove();
     clone.setAttribute("width",SIZE); clone.setAttribute("height",SIZE);
-    const url=URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(clone)],{type:"image/svg+xml"}));
-    const img=new Image();
-    img.onload=()=>{ const cv=document.createElement("canvas"); cv.width=cv.height=SIZE; cv.getContext("2d").drawImage(img,0,0,SIZE,SIZE);
-      URL.revokeObjectURL(url); cv.toBlob(b=>{ const a=document.createElement("a"); a.href=URL.createObjectURL(b); a.download=`dream-canvas-${SIZE}px.png`; a.click(); },"image/png"); };
-    img.onerror=()=>{ alert("Export failed in this browser — try Chrome/Edge/Firefox."); URL.revokeObjectURL(url); };
-    img.src=url; };
+    const url=URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(clone)],{type:"image/svg+xml"})); const img=new Image();
+    img.onload=()=>{ const cv=document.createElement("canvas"); cv.width=cv.height=SIZE; cv.getContext("2d").drawImage(img,0,0,SIZE,SIZE); URL.revokeObjectURL(url);
+      cv.toBlob(b=>{ const a=document.createElement("a"); a.href=URL.createObjectURL(b); a.download=`dream-canvas-${SIZE}px.png`; a.click(); },"image/png"); };
+    img.onerror=()=>{ alert("Export failed in this browser — try Chrome/Edge/Firefox."); URL.revokeObjectURL(url); }; img.src=url; };
 
-  const refresh=()=>{ $("stN").textContent=nContrib; $("stCap").textContent=CAP;
-    $("stPrice").textContent=nContrib*SLOT_FEE+HOLDER_FEE;
+  const refresh=()=>{ $("stN").textContent=nContrib; $("stCap").textContent=CAP; $("stPrice").textContent=nContrib*SLOT_FEE+HOLDER_FEE;
     $("undo").disabled=!active.children.length; $("redo").disabled=!undone.length;
-    const sealed=nContrib>=CAP; $("commit").disabled=sealed||!active.children.length;
-    $("stSeal").textContent=sealed?" · SEALED ✔":""; if(sealed) $("commit").textContent="● Sealed";
-    renderSource(); };
+    const sealed=nContrib>=CAP; $("commit").disabled=sealed||!active.children.length; $("stSeal").textContent=sealed?" · SEALED ✔":""; if(sealed) $("commit").textContent="● Sealed"; renderSource(); };
 
-  load(); applyTheme(); refresh();
+  load(); applyTheme(); setColor(color); refresh();
 })();
 </script>
 </body>
