@@ -6,9 +6,9 @@
 <title>Draw · create.nft.sale</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='84'>✏️</text></svg>">
 <style>
-  :root{--bg:#0d1117;--panel:#161b22;--panel2:#1f2530;--line:#2b303b;--ink:#e7e9ee;--dim:#9aa1af;--accent:#8b7cf6;--accent2:#5eead4}
+  :root{--bg:#0d1117;--panel:#161b22;--panel2:#1f2530;--line:#2b303b;--ink:#e7e9ee;--dim:#9aa1af;--accent:#8b7cf6;--accent2:#5eead4;--font:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--radius:8px}
   *{box-sizing:border-box} html,body{height:100%}
-  body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;display:flex;flex-direction:column;overflow:hidden;touch-action:none}
+  body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 var(--font);display:flex;flex-direction:column;overflow:hidden;touch-action:none}
   .appnav{display:flex;align-items:center;gap:14px;padding:9px 16px;background:var(--panel);border-bottom:1px solid var(--line)}
   .appnav .brand{font-weight:750;color:var(--ink);text-decoration:none;font-size:15px} .appnav .brand b{color:var(--accent)}
   .appnav .tabs{display:flex;gap:6px;margin-left:auto}
@@ -21,7 +21,7 @@
   .sep{width:1px;align-self:stretch;background:var(--line);margin:2px}
   .stat{font:12px/1.4 ui-monospace,Menlo,monospace;color:var(--dim);margin-left:auto}
   .stat b{color:var(--ink)} .stat .seal{color:var(--accent2)} .stat .price b{color:var(--accent2)}
-  button.tool,select,button.act{background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:7px 9px;font-size:14px;cursor:pointer;line-height:1}
+  button.tool,select,button.act{background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:var(--radius);padding:7px 9px;font-size:14px;cursor:pointer;line-height:1}
   button.tool{min-width:36px}
   button.tool.on{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 22%,var(--panel2));color:#fff}
   button.act{font-weight:600;font-size:13px} button.act.primary{background:var(--accent);border-color:var(--accent);color:#0b0b12}
@@ -29,7 +29,7 @@
   button:disabled{opacity:.4;cursor:not-allowed}
   .swatch{width:24px;height:24px;border-radius:50%;border:2px solid rgba(255,255,255,.15);cursor:pointer;padding:0}
   .swatch.on{border-color:#fff;box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--accent)}
-  .width{width:34px;height:34px;display:grid;place-items:center;border-radius:8px;background:var(--panel2);border:1px solid var(--line);cursor:pointer}
+  .width{width:34px;height:34px;display:grid;place-items:center;border-radius:var(--radius);background:var(--panel2);border:1px solid var(--line);cursor:pointer}
   .width.on{border-color:var(--accent)} .width i{display:block;background:var(--ink);border-radius:99px}
   input[type=color]{-webkit-appearance:none;appearance:none;width:32px;height:32px;border:1px solid var(--line);border-radius:8px;padding:0;background:none;cursor:pointer}
   input[type=color]::-webkit-color-swatch-wrapper{padding:2px} input[type=color]::-webkit-color-swatch{border:none;border-radius:6px} input[type=color]::-moz-color-swatch{border:none;border-radius:6px}
@@ -53,6 +53,17 @@
   .chip{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:99px;background:var(--panel2);border:1px solid var(--line);color:var(--dim);white-space:nowrap}
   .chip i{width:9px;height:9px;border-radius:50%} .spacer{flex:1}
   @media (max-width:640px){.appnav .brand span{display:none}}
+  /* ── App SKINS (the whole-tool vibe; separate from the canvas art themes) ── */
+  body[data-skin="crayon"]{--bg:#efe4cd;--panel:#fff7e6;--panel2:#fffdf8;--line:#e0d2b2;--ink:#2b2118;--dim:#8a7a5f;--accent:#ff5a5f;--accent2:#f0a316;--font:"Trebuchet MS","Segoe UI",system-ui,sans-serif;--radius:13px;background-image:radial-gradient(#e2d5b8 .9px,transparent .9px);background-size:20px 20px}
+  body[data-skin="crayon"] button.tool,body[data-skin="crayon"] button.act,body[data-skin="crayon"] select,body[data-skin="crayon"] .width{border-width:2px;font-weight:700}
+  body[data-skin="crayon"] button.tool.on{transform:rotate(-2.5deg)}
+  body[data-skin="sketch"]{--bg:#e7e1d2;--panel:#fbf8f0;--panel2:#fbf8f0;--line:#cabfa6;--ink:#26241f;--dim:#8b8371;--accent:#e5484d;--accent2:#2d5bd7;--font:"Trebuchet MS","Segoe UI",system-ui,sans-serif;--radius:9px}
+  body[data-skin="sketch"] button.tool,body[data-skin="sketch"] button.act,body[data-skin="sketch"] select{border-width:1.5px}
+  body[data-skin="toy"]{--bg:#ffeaf3;--panel:#ff6ea9;--panel2:#f6f1ff;--line:#f0c4da;--ink:#38264d;--dim:#6b4f82;--accent:#22c3a6;--accent2:#ff9f43;--font:"Trebuchet MS","Segoe UI",system-ui,sans-serif;--radius:18px}
+  body[data-skin="toy"] button.tool,body[data-skin="toy"] button.act{border-width:2px;box-shadow:0 3px 0 rgba(56,38,77,.16)}
+  body[data-skin="toy"] .appnav .brand{color:#fff} body[data-skin="toy"] .appnav .tab{color:#ffe3ef}
+  body[data-skin="toy"] button.tool.on{transform:rotate(-2deg)}
+  body[data-skin="crayon"] .tool.on,body[data-skin="crayon"] .tab.on,body[data-skin="sketch"] .tool.on,body[data-skin="sketch"] .tab.on,body[data-skin="toy"] .tool.on,body[data-skin="toy"] .tab.on{color:var(--ink)}
 </style>
 </head>
 <body>
@@ -146,7 +157,13 @@
     <button class="act" id="newCanvas" title="Start a fresh canvas (clears everything)">🗑 New</button>
     <div class="ledger" id="ledger"></div>
     <div class="spacer"></div>
-    <select id="theme" title="Canvas theme"></select>
+    <select id="skin" title="App look / skin">
+      <option value="crayon">Skin: Crayon</option>
+      <option value="sketch">Skin: Sketchbook</option>
+      <option value="toy">Skin: Toy Box</option>
+      <option value="studio">Skin: Studio</option>
+    </select>
+    <select id="theme" title="Canvas colour theme"></select>
     <button class="act" id="viewsvg">&lt;/&gt; SVG</button>
     <button class="act pay" id="hq">⬇ Ultra-HQ</button>
   </footer>
@@ -302,6 +319,13 @@
   Object.keys(THEMES).forEach(n=>{ const o=document.createElement("option"); o.value=n; o.textContent="Theme: "+n; themeSel.appendChild(o); });
   themeSel.onchange=()=>{ themeName=themeSel.value; applyTheme(); save(); };
   const applyTheme=()=>{ bg.setAttribute("fill",bgColor()); themeSel.value=themeName; buildPalette(); };
+
+  // ── App skin (whole-tool vibe; separate from the canvas colour theme) ──
+  const SKINSTORE="createNftSale.skin", skinSel=$("skin");
+  const applySkin=s=>{ document.body.dataset.skin=s; skinSel.value=s; };
+  skinSel.onchange=()=>{ applySkin(skinSel.value); try{localStorage.setItem(SKINSTORE,skinSel.value);}catch(_){} };
+  let savedSkin="crayon"; try{ savedSkin=localStorage.getItem(SKINSTORE)||"crayon"; }catch(_){}
+  applySkin(savedSkin);
 
   // ── SVG source viewer ──
   let drawerOpen=false;
