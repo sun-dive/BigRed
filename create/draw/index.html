@@ -163,10 +163,18 @@
     el.setAttribute("fill","none"); el.setAttribute("stroke", er?bgColor():color); el.setAttribute("stroke-width", er?width*2:width*b.mult);
     el.setAttribute("stroke-linecap","round"); el.setAttribute("stroke-linejoin","round"); if(!er && b.op<1) el.setAttribute("stroke-opacity",b.op); };
 
-  // ── Stamp ──
+  // ── Stamp (wiggle = a rotational boil around the stamp's own centre, via SMIL animateTransform) ──
+  const rot=n=>Array.from({length:n},()=>((Math.random()*2-1)*6).toFixed(1)).join(";");
   const placeStamp=p=>{ const s=Math.max(6,width*2.6), shp=$("stampShape").value;
     let el; if(shp==="●"){ el=document.createElementNS(SVGNS,"circle"); el.setAttribute("r",1); } else { el=document.createElementNS(SVGNS,"path"); el.setAttribute("d",STAMP[shp]||STAR); }
-    el.setAttribute("fill",color); const g=document.createElementNS(SVGNS,"g"); g.setAttribute("transform",`translate(${p.x} ${p.y}) scale(${s})`); g.appendChild(el); active.appendChild(g); undone=[]; save(); refresh(); };
+    el.setAttribute("fill",color);
+    const g=document.createElementNS(SVGNS,"g"); g.setAttribute("transform",`translate(${p.x} ${p.y}) scale(${s})`);
+    if(wiggle){ const inner=document.createElementNS(SVGNS,"g"); inner.appendChild(el);
+      const an=document.createElementNS(SVGNS,"animateTransform"); an.setAttribute("attributeName","transform"); an.setAttribute("type","rotate");
+      an.setAttribute("values",rot(3)); an.setAttribute("dur","0.4s"); an.setAttribute("repeatCount","indefinite"); an.setAttribute("calcMode","discrete");
+      inner.appendChild(an); g.appendChild(inner); }
+    else g.appendChild(el);
+    active.appendChild(g); undone=[]; save(); refresh(); };
 
   // ── Drawing ──
   const start=e=>{ e.preventDefault(); const p=toSvg(e);
