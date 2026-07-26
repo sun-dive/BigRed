@@ -158,7 +158,7 @@
           <circle id="bc2" r="3" fill="none" stroke="#fff" stroke-width="0.8"></circle>
         </g>
       </svg>
-      <div class="hint">draw → “Add mark” to commit · scroll or 🔍 to zoom · ✋ to pan · work auto-saves</div>
+      <div class="hint" id="hint">draw → “Add mark” to commit · scroll or 🔍 to zoom · ✋ to pan · work auto-saves</div>
     </div>
   </div>
 
@@ -273,6 +273,22 @@
     if(wiggle) im.setAttribute("filter","url(#mcyc)");   // Wiggle on → the Mandelbrot colour-cycles forever
     return im; };
 
+  // ── Mandelbrot ZOOM loop, generated in-tool: render N frames diving into seahorse valley → one self-animating
+  //    <image> (SMIL href flipbook). A few seconds of compute (yields between frames so the UI stays alive). ──
+  async function genMandelZoom(g){
+    const hint=$("hint"), orig=hint?hint.textContent:"";
+    const N=28,S=240,CX=-0.743643887037151,CY=0.131825904205330,HALF0=1.35,MAXEXP=12.0,frames=[];
+    const cv=document.createElement("canvas"); cv.width=cv.height=S; const cc=cv.getContext("2d");
+    for(let k=0;k<N;k++){ if(hint) hint.textContent=`⏳ growing a zooming Mandelbrot… ${Math.round((k/N)*100)}%`;
+      const zexp=(k/(N-1))*MAXEXP, half=HALF0*Math.exp(-zexp), MI=Math.min(700,Math.floor(140+zexp*44)), img=cc.createImageData(S,S), d=img.data;
+      for(let py=0;py<S;py++){ const cy=CY+((py/S)-0.5)*2*half; for(let px=0;px<S;px++){ const cx=CX+((px/S)-0.5)*2*half; let zx=0,zy=0,i=0;
+        while(i<MI&&zx*zx+zy*zy<256){const t=zx*zx-zy*zy+cx;zy=2*zx*zy+cy;zx=t;i++;} const o=(py*S+px)*4;
+        if(i>=MI){d[o]=6;d[o+1]=6;d[o+2]=14;d[o+3]=255;} else{const mu=i-Math.log2(Math.log2(zx*zx+zy*zy))+4,c=hsl2rgb(mu*9+200,.8,.5);d[o]=c[0];d[o+1]=c[1];d[o+2]=c[2];d[o+3]=255;}}}
+      cc.putImageData(img,0,0); frames.push(cv.toDataURL("image/webp",0.72)); await new Promise(r=>setTimeout(r,0)); }
+    const im=document.createElementNS(SVGNS,"image"); im.setAttribute("x","-0.5"); im.setAttribute("y","-0.5"); im.setAttribute("width","1"); im.setAttribute("height","1"); im.setAttribute("preserveAspectRatio","none"); im.setAttribute("href",frames[0]);
+    const an=document.createElementNS(SVGNS,"animate"); an.setAttribute("attributeName","href"); an.setAttribute("values",frames.join(";")); an.setAttribute("dur","6s"); an.setAttribute("repeatCount","indefinite"); an.setAttribute("calcMode","discrete"); im.appendChild(an);
+    g.appendChild(im); if(hint) hint.textContent=orig; save(); refresh(); }
+
   // ── Zoom / pan (viewBox — toSvg's getScreenCTM handles it, so drawing coords stay correct) ──
   const applyView=()=>{ const vw=1000/zoom; panX=Math.max(0,Math.min(1000-vw,panX)); panY=Math.max(0,Math.min(1000-vw,panY));
     svg.setAttribute("viewBox",`${panX} ${panY} ${vw} ${vw}`); $("zlabel").textContent=Math.round(zoom*100)+"%"; };
@@ -302,6 +318,7 @@
     svg.setPointerCapture(e.pointerId); drawing=true; undone=[]; points=[p];
     if(tool==="spray"){ current=document.createElementNS(SVGNS,"g"); active.appendChild(current); sprayAt(p); refresh(); return; }
     if(tool==="fractal"){ fbase=p; fcount=0; current=document.createElementNS(SVGNS,"g");
+      if(fkind==="Mandelbrot" && fgrow==="loop"){ current.setAttribute("transform","translate(500 500) scale(1000)"); active.appendChild(current); genMandelZoom(current); refresh(); return; }
       if(fkind==="Mandelbrot"){ current.appendChild(mandelImage()); } else { const fp=FRACTALS[fkind]||FRACTALS.Fern; fGrow(current,0,0,0,1,fp.depth,width/160,fp); }
       active.appendChild(current); fPlace(p); refresh(); return; }
     if(FREEHAND.has(tool)){ current=document.createElementNS(SVGNS,"path"); strokeAttrs(current); current.setAttribute("d",`M ${p.x} ${p.y}`); }
