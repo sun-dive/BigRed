@@ -420,7 +420,7 @@
     $("svgview").innerHTML=`<span class="g">&lt;!-- ${nContrib} mark atom(s) · ${bytes} bytes on-chain · rendered natively --&gt;</span>\n`+html.replace(/</g,"&lt;").replace(/&lt;g /g,'<span class="g">&lt;g </span>'); };
 
   // ── Ultra-HQ export (always the FULL canvas, ignoring zoom/pan) ──
-  $("hq").onclick=()=>{ const SIZE=3000; const clone=svg.cloneNode(true); clone.querySelector("#active")?.remove(); clone.querySelector("#brushCursor")?.remove();
+  $("hq").onclick=()=>{ const SIZE=3000; const clone=svg.cloneNode(true); clone.querySelector("#brushCursor")?.remove(); // keep #active so what's on screen exports
     clone.setAttribute("viewBox","0 0 1000 1000"); clone.setAttribute("width",SIZE); clone.setAttribute("height",SIZE);
     const url=URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(clone)],{type:"image/svg+xml"})); const img=new Image();
     img.onload=()=>{ const cv=document.createElement("canvas"); cv.width=cv.height=SIZE; cv.getContext("2d").drawImage(img,0,0,SIZE,SIZE); URL.revokeObjectURL(url);
@@ -429,10 +429,11 @@
 
   // ── Export a standalone ANIMATED SVG (vector + SMIL preserved: wiggle/grow/mandelbrot-cycle) — the mintable atom ──
   $("exportSvg").onclick=()=>{
-    const clone=svg.cloneNode(true);                    // clone the live canvas (keeps #mcyc defs, bg, committed art + all SMIL)
-    clone.querySelector("#active")?.remove(); clone.querySelector("#brushCursor")?.remove();
+    const clone=svg.cloneNode(true);                    // clone the live canvas (bg, defs, ALL art + SMIL)
+    clone.querySelector("#brushCursor")?.remove();      // drop only the cursor UI — KEEP #active so in-progress art exports too ("what you see")
     clone.setAttribute("viewBox","0 0 1000 1000"); clone.setAttribute("width","1000"); clone.setAttribute("height","1000"); // full frame, ignore zoom/pan
-    const doc='<?xml version="1.0" encoding="UTF-8"?>\n'+new XMLSerializer().serializeToString(clone); // proper XML (namespaces handled) = valid standalone SVG
+    clone.setAttributeNS("http://www.w3.org/2000/xmlns/","xmlns:xlink","http://www.w3.org/1999/xlink"); // guarantee the xlink decl for image frames
+    const doc='<?xml version="1.0" encoding="UTF-8"?>\n'+new XMLSerializer().serializeToString(clone); // proper XML = valid standalone SVG
     const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([doc],{type:"image/svg+xml"})); a.download="dream-canvas.svg"; a.click(); };
 
   const refresh=()=>{ $("stN").textContent=nContrib; $("stCap").textContent=CAP; $("stPrice").textContent=nContrib*SLOT_FEE+HOLDER_FEE;
