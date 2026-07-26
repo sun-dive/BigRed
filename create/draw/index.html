@@ -180,6 +180,7 @@
     <button class="act" id="viewsvg">&lt;/&gt; SVG</button>
     <button class="act" id="exportSvg" title="Export an animated SVG — the mintable, self-animating atom">⬇ SVG</button>
     <button class="act pay" id="hq">⬇ Ultra-HQ</button>
+    <button class="act" id="cover" title="800×800 PNG — sized for a 1:1 NFT cover, so the cropper passes it with no crop">⬇ 800² Cover</button>
   </footer>
 
 <script>
@@ -427,12 +428,15 @@
     $("svgview").innerHTML=`<span class="g">&lt;!-- ${nContrib} mark atom(s) · ${bytes} bytes on-chain · rendered natively --&gt;</span>\n`+html.replace(/</g,"&lt;").replace(/&lt;g /g,'<span class="g">&lt;g </span>'); };
 
   // ── Ultra-HQ export (always the FULL canvas, ignoring zoom/pan) ──
-  $("hq").onclick=()=>{ const SIZE=3000; const clone=svg.cloneNode(true); clone.querySelector("#brushCursor")?.remove(); // keep #active so what's on screen exports
+  const rasterPNG=(SIZE,name)=>{ const clone=svg.cloneNode(true); clone.querySelector("#brushCursor")?.remove(); // keep #active so what's on screen exports
     clone.setAttribute("viewBox","0 0 1000 1000"); clone.setAttribute("width",SIZE); clone.setAttribute("height",SIZE);
+    clone.setAttributeNS("http://www.w3.org/2000/xmlns/","xmlns:xlink","http://www.w3.org/1999/xlink"); // so xlink:href image frames (Mandelbrot) rasterize, not blank
     const url=URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(clone)],{type:"image/svg+xml"})); const img=new Image();
-    img.onload=()=>{ const cv=document.createElement("canvas"); cv.width=cv.height=SIZE; cv.getContext("2d").drawImage(img,0,0,SIZE,SIZE); URL.revokeObjectURL(url);
-      cv.toBlob(b=>{ const a=document.createElement("a"); a.href=URL.createObjectURL(b); a.download=`dream-canvas-${SIZE}px.png`; a.click(); },"image/png"); };
+    img.onload=()=>{ const cv=document.createElement("canvas"); cv.width=cv.height=SIZE; const cx=cv.getContext("2d"); cx.fillStyle=bgColor(); cx.fillRect(0,0,SIZE,SIZE); cx.drawImage(img,0,0,SIZE,SIZE); URL.revokeObjectURL(url);
+      cv.toBlob(b=>{ const a=document.createElement("a"); a.href=URL.createObjectURL(b); a.download=name; a.click(); },"image/png"); };
     img.onerror=()=>{ alert("Export failed in this browser — try Chrome/Edge/Firefox."); URL.revokeObjectURL(url); }; img.src=url; };
+  $("hq").onclick=()=>rasterPNG(3000,"dream-canvas-3000px.png");
+  $("cover").onclick=()=>rasterPNG(800,"dream-canvas-cover-800.png"); // 800×800 = canonical 1:1 NFT cover, passes the crop filter
 
   // ── Export a standalone ANIMATED SVG (vector + SMIL preserved: wiggle/grow/mandelbrot-cycle) — the mintable atom ──
   $("exportSvg").onclick=()=>{
