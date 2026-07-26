@@ -285,9 +285,13 @@
         while(i<MI&&zx*zx+zy*zy<256){const t=zx*zx-zy*zy+cx;zy=2*zx*zy+cy;zx=t;i++;} const o=(py*S+px)*4;
         if(i>=MI){d[o]=6;d[o+1]=6;d[o+2]=14;d[o+3]=255;} else{const mu=i-Math.log2(Math.log2(zx*zx+zy*zy))+4,c=hsl2rgb(mu*9+200,.8,.5);d[o]=c[0];d[o+1]=c[1];d[o+2]=c[2];d[o+3]=255;}}}
       cc.putImageData(img,0,0); frames.push(cv.toDataURL("image/webp",0.72)); await new Promise(r=>setTimeout(r,0)); }
-    const im=document.createElementNS(SVGNS,"image"); im.setAttribute("x","-0.5"); im.setAttribute("y","-0.5"); im.setAttribute("width","1"); im.setAttribute("height","1"); im.setAttribute("preserveAspectRatio","none"); im.setAttribute("href",frames[0]);
-    const an=document.createElementNS(SVGNS,"animate"); an.setAttribute("attributeName","href"); an.setAttribute("values",frames.join(";")); an.setAttribute("dur","6s"); an.setAttribute("repeatCount","indefinite"); an.setAttribute("calcMode","discrete"); im.appendChild(an);
-    g.appendChild(im); if(hint) hint.textContent=orig; save(); refresh(); }
+    // opacity flipbook: N stacked frames, each visible only in its time-slot (animating href is unreliable across browsers)
+    frames.forEach((f,k)=>{ const a=(k/N).toFixed(4), b=((k+1)/N).toFixed(4);
+      const im=document.createElementNS(SVGNS,"image"); im.setAttribute("x","-0.5"); im.setAttribute("y","-0.5"); im.setAttribute("width","1"); im.setAttribute("height","1"); im.setAttribute("preserveAspectRatio","none");
+      im.setAttributeNS("http://www.w3.org/1999/xlink","xlink:href",f); im.setAttribute("opacity", k===0?"1":"0");
+      const an=document.createElementNS(SVGNS,"animate"); an.setAttribute("attributeName","opacity"); an.setAttribute("values","0;1;0;0"); an.setAttribute("keyTimes",`0;${a};${b};1`);
+      an.setAttribute("dur","6s"); an.setAttribute("repeatCount","indefinite"); an.setAttribute("calcMode","discrete"); im.appendChild(an); g.appendChild(im); });
+    if(hint) hint.textContent=orig; save(); refresh(); }
 
   // ── Zoom / pan (viewBox — toSvg's getScreenCTM handles it, so drawing coords stay correct) ──
   const applyView=()=>{ const vw=1000/zoom; panX=Math.max(0,Math.min(1000-vw,panX)); panY=Math.max(0,Math.min(1000-vw,panY));
