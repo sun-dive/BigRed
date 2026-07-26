@@ -34,9 +34,15 @@
   input[type=color]{-webkit-appearance:none;appearance:none;width:32px;height:32px;border:1px solid var(--line);border-radius:8px;padding:0;background:none;cursor:pointer}
   input[type=color]::-webkit-color-swatch-wrapper{padding:2px} input[type=color]::-webkit-color-swatch{border:none;border-radius:6px} input[type=color]::-moz-color-swatch{border:none;border-radius:6px}
   #hex{width:92px;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:7px 8px;font:13px ui-monospace,Menlo,monospace;text-transform:uppercase}
+  .tpanel{position:absolute;top:calc(100% + 8px);left:0;z-index:30;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:11px;box-shadow:0 14px 34px rgba(0,0,0,.55);min-width:216px}
+  .tpanel[hidden]{display:none}
+  .tpanel label{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--dim)}
+  .tpanel label .v{margin-left:auto;color:var(--ink);font:12px ui-monospace,Menlo,monospace}
+  .tpanel input[type=range]{flex:1;accent-color:var(--accent)} .tpanel .chk{gap:7px}
   .stage{flex:1;display:flex;align-items:center;justify-content:center;padding:18px;min-height:0}
   .frame{position:relative;width:min(72vh,96vw);aspect-ratio:1;border-radius:14px;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,.5),0 0 0 1px var(--line)}
   svg{display:block;width:100%;height:100%;cursor:crosshair;touch-action:none}
+  svg.pan{cursor:grab}
   .hint{position:absolute;left:12px;bottom:10px;font-size:11px;color:rgba(255,255,255,.55);background:rgba(0,0,0,.35);padding:3px 8px;border-radius:6px;pointer-events:none;backdrop-filter:blur(2px)}
   .drawer{max-height:0;overflow:hidden;transition:max-height .2s ease;background:var(--panel);border-top:1px solid var(--line)}
   .drawer.open{max-height:38vh;overflow:auto}
@@ -78,7 +84,24 @@
       <button class="tool" data-tool="ellipse" title="Ellipse">◯</button>
     </div>
     <div class="sep"></div>
-    <button class="tool" id="wiggle" title="Wiggle — make strokes come alive (WigglyPaint-style)" style="min-width:auto;padding:7px 9px">🌀</button>
+    <div class="group" style="position:relative">
+      <button class="tool" id="wiggle" title="Wiggle — make strokes & stamps come alive" style="min-width:auto;padding:7px 9px">🌀</button>
+      <button class="tool" id="twiggle" title="Wiggle settings (twiggle)" style="min-width:auto;padding:7px 8px">⚙</button>
+      <div class="tpanel" id="tpanel" hidden>
+        <label>Amount <span class="v" id="wAmtV">7</span></label>
+        <input type="range" id="wAmt" min="2" max="22" value="7">
+        <label>Speed <span class="v" id="wSpdV">5</span></label>
+        <input type="range" id="wSpd" min="1" max="10" value="5">
+        <label class="chk"><input type="checkbox" id="wSmooth"> Smooth wobble <span class="v">(vs jumpy boil)</span></label>
+      </div>
+    </div>
+    <div class="sep"></div>
+    <div class="group"><span class="lbl">View</span>
+      <button class="tool" data-tool="pan" title="Pan — drag to move the canvas">✋</button>
+      <button class="tool" id="zOut" title="Zoom out">🔍−</button>
+      <button class="tool" id="zFit" title="Reset zoom (fit)" style="min-width:auto;padding:7px 8px;font:12px ui-monospace,Menlo,monospace"><span id="zlabel">100%</span></button>
+      <button class="tool" id="zIn" title="Zoom in">🔍+</button>
+    </div>
     <div class="sep"></div>
     <div class="group" id="widths"><span class="lbl">Size</span></div>
     <div class="sep"></div>
@@ -109,7 +132,7 @@
           <circle id="bc2" r="3" fill="none" stroke="#fff" stroke-width="0.8"></circle>
         </g>
       </svg>
-      <div class="hint">draw → “Add mark” to commit (committed marks lock) · your work auto-saves</div>
+      <div class="hint">draw → “Add mark” to commit · scroll or 🔍 to zoom · ✋ to pan · work auto-saves</div>
     </div>
   </div>
 
@@ -148,6 +171,8 @@
 
   let tool="pen", color="#8b7cf6", width=6, themeName="Aurora", wiggle=false;
   let drawing=false, current=null, points=[], undone=[], nContrib=0;
+  const WIG={amp:7, dur:"0.52s", calc:"discrete"};      // twiggle-able wiggle params
+  let zoom=1, panX=0, panY=0, panning=false, ps=null;   // zoom / pan
   const bgColor=()=>THEMES[themeName].bg;
 
   // ── Persistence ──
@@ -163,21 +188,31 @@
     el.setAttribute("fill","none"); el.setAttribute("stroke", er?bgColor():color); el.setAttribute("stroke-width", er?width*2:width*b.mult);
     el.setAttribute("stroke-linecap","round"); el.setAttribute("stroke-linejoin","round"); if(!er && b.op<1) el.setAttribute("stroke-opacity",b.op); };
 
-  // ── Stamp (wiggle = a rotational boil around the stamp's own centre, via SMIL animateTransform) ──
-  const rot=n=>Array.from({length:n},()=>((Math.random()*2-1)*6).toFixed(1)).join(";");
+  // ── Zoom / pan (viewBox — toSvg's getScreenCTM handles it, so drawing coords stay correct) ──
+  const applyView=()=>{ const vw=1000/zoom; panX=Math.max(0,Math.min(1000-vw,panX)); panY=Math.max(0,Math.min(1000-vw,panY));
+    svg.setAttribute("viewBox",`${panX} ${panY} ${vw} ${vw}`); $("zlabel").textContent=Math.round(zoom*100)+"%"; };
+  const zoomBy=(f,cx,cy)=>{ const vw=1000/zoom; if(cx==null){cx=panX+vw/2;cy=panY+vw/2;} const nz=Math.max(1,Math.min(8,zoom*f)),nvw=1000/nz;
+    panX=cx-(cx-panX)*(nvw/vw); panY=cy-(cy-panY)*(nvw/vw); zoom=nz; applyView(); };
+  $("zIn").onclick=()=>zoomBy(1.4); $("zOut").onclick=()=>zoomBy(1/1.4); $("zFit").onclick=()=>{ zoom=1; panX=0; panY=0; applyView(); };
+  svg.addEventListener("wheel",e=>{ e.preventDefault(); const p=toSvg(e); zoomBy(e.deltaY<0?1.15:1/1.15,p.x,p.y); },{passive:false});
+
+  // ── Stamp (wiggle = rotational boil around its own centre) ──
   const placeStamp=p=>{ const s=Math.max(6,width*2.6), shp=$("stampShape").value;
     let el; if(shp==="●"){ el=document.createElementNS(SVGNS,"circle"); el.setAttribute("r",1); } else { el=document.createElementNS(SVGNS,"path"); el.setAttribute("d",STAMP[shp]||STAR); }
     el.setAttribute("fill",color);
     const g=document.createElementNS(SVGNS,"g"); g.setAttribute("transform",`translate(${p.x} ${p.y}) scale(${s})`);
     if(wiggle){ const inner=document.createElementNS(SVGNS,"g"); inner.appendChild(el);
+      const vals=Array.from({length:3},()=>((Math.random()*2-1)*WIG.amp).toFixed(1)).join(";");
       const an=document.createElementNS(SVGNS,"animateTransform"); an.setAttribute("attributeName","transform"); an.setAttribute("type","rotate");
-      an.setAttribute("values",rot(3)); an.setAttribute("dur","0.4s"); an.setAttribute("repeatCount","indefinite"); an.setAttribute("calcMode","discrete");
+      an.setAttribute("values",vals); an.setAttribute("dur",WIG.dur); an.setAttribute("repeatCount","indefinite"); an.setAttribute("calcMode",WIG.calc);
       inner.appendChild(an); g.appendChild(inner); }
     else g.appendChild(el);
     active.appendChild(g); undone=[]; save(); refresh(); };
 
-  // ── Drawing ──
-  const start=e=>{ e.preventDefault(); const p=toSvg(e);
+  // ── Drawing / pan pointer handlers ──
+  const start=e=>{ e.preventDefault();
+    if(tool==="pan"){ panning=true; const r=svg.getBoundingClientRect(); ps={x:e.clientX,y:e.clientY,px:panX,py:panY,scale:(1000/zoom)/r.width}; svg.setPointerCapture(e.pointerId); return; }
+    const p=toSvg(e);
     if(tool==="stamp"){ placeStamp(p); return; }
     svg.setPointerCapture(e.pointerId); drawing=true; undone=[]; points=[p];
     if(FREEHAND.has(tool)){ current=document.createElementNS(SVGNS,"path"); strokeAttrs(current); current.setAttribute("d",`M ${p.x} ${p.y}`); }
@@ -185,28 +220,38 @@
     else if(tool==="rect"){ current=document.createElementNS(SVGNS,"rect"); strokeAttrs(current); current._o=p; }
     else { current=document.createElementNS(SVGNS,"ellipse"); strokeAttrs(current); current._o=p; }
     active.appendChild(current); refresh(); };
-  const move=e=>{ if(!drawing) return; const p=toSvg(e);
+  const move=e=>{
+    if(panning){ panX=ps.px-(e.clientX-ps.x)*ps.scale; panY=ps.py-(e.clientY-ps.y)*ps.scale; applyView(); return; }
+    if(!drawing) return; const p=toSvg(e);
     if(FREEHAND.has(tool)){ const l=points[points.length-1]; if(Math.hypot(p.x-l.x,p.y-l.y)<2) return; points.push(p); current.setAttribute("d",smooth(points)); }
     else if(tool==="line"){ current.setAttribute("x2",p.x); current.setAttribute("y2",p.y); }
     else if(tool==="rect"){ const o=current._o; current.setAttribute("x",Math.min(o.x,p.x)); current.setAttribute("y",Math.min(o.y,p.y)); current.setAttribute("width",Math.abs(p.x-o.x)); current.setAttribute("height",Math.abs(p.y-o.y)); }
     else { const o=current._o; current.setAttribute("cx",(o.x+p.x)/2); current.setAttribute("cy",(o.y+p.y)/2); current.setAttribute("rx",Math.abs(p.x-o.x)/2); current.setAttribute("ry",Math.abs(p.y-o.y)/2); } };
-  const end=e=>{ if(!drawing) return; drawing=false; try{svg.releasePointerCapture(e.pointerId);}catch(_){}
+  const end=e=>{ if(panning){ panning=false; try{svg.releasePointerCapture(e.pointerId);}catch(_){} return; }
+    if(!drawing) return; drawing=false; try{svg.releasePointerCapture(e.pointerId);}catch(_){}
     if(current&&current._o) delete current._o;
     if(wiggle && tool!=="eraser" && current && current.tagName==="path" && points.length>1) boil(current,points);
     save(); refresh(); };
   svg.addEventListener("pointerdown",start); svg.addEventListener("pointermove",move);
   svg.addEventListener("pointerup",end); svg.addEventListener("pointercancel",end);
 
-  // ── Wiggle: 3-frame "boil" baked as a SMIL <animate> (native, tiny, survives reload) ──
-  const J=7, jitter=pts=>pts.map(p=>({x:p.x+(Math.random()-.5)*2*J, y:p.y+(Math.random()-.5)*2*J}));
+  // ── Wiggle boil (uses the twiggle-able WIG params) ──
+  const jitter=pts=>pts.map(p=>({x:p.x+(Math.random()-.5)*2*WIG.amp, y:p.y+(Math.random()-.5)*2*WIG.amp}));
   const boil=(el,pts)=>{ const f=[smooth(pts),smooth(jitter(pts)),smooth(jitter(pts))]; el.setAttribute("d",f[0]);
     const an=document.createElementNS(SVGNS,"animate"); an.setAttribute("attributeName","d"); an.setAttribute("values",f.join(";"));
-    an.setAttribute("dur","0.4s"); an.setAttribute("repeatCount","indefinite"); an.setAttribute("calcMode","discrete"); el.appendChild(an); };
+    an.setAttribute("dur",WIG.dur); an.setAttribute("repeatCount","indefinite"); an.setAttribute("calcMode",WIG.calc); el.appendChild(an); };
+
+  // ── Twiggle panel ──
+  const wAmt=$("wAmt"), wSpd=$("wSpd"), wSmooth=$("wSmooth"), tpanel=$("tpanel");
+  const updWig=()=>{ WIG.amp=+wAmt.value; WIG.calc=wSmooth.checked?"linear":"discrete"; WIG.dur=(0.9-(+wSpd.value)*0.075).toFixed(2)+"s"; $("wAmtV").textContent=wAmt.value; $("wSpdV").textContent=wSpd.value; };
+  wAmt.oninput=updWig; wSpd.oninput=updWig; wSmooth.onchange=updWig; updWig();
+  $("twiggle").onclick=e=>{ e.stopPropagation(); tpanel.hidden=!tpanel.hidden; };
+  document.addEventListener("pointerdown",e=>{ if(!tpanel.hidden && !tpanel.contains(e.target) && e.target!==$("twiggle")) tpanel.hidden=true; });
 
   // ── Brush cursor ──
   const cursor=$("brushCursor"), bc1=$("bc1"), bc2=$("bc2");
-  const showCursor=e=>{ const p=toSvg(e); cursor.setAttribute("transform",`translate(${p.x} ${p.y})`);
-    const r=Math.max(2, (tool==="eraser"?width:width*(BRUSH[tool]?BRUSH[tool].mult:1))/2 * (tool==="eraser"?2:1)); bc1.setAttribute("r",r); bc2.setAttribute("r",r); cursor.setAttribute("opacity","1"); };
+  const showCursor=e=>{ if(tool==="pan"){ cursor.setAttribute("opacity","0"); return; } const p=toSvg(e); cursor.setAttribute("transform",`translate(${p.x} ${p.y})`);
+    const r=Math.max(2, (tool==="eraser"?width:(BRUSH[tool]?width*BRUSH[tool].mult:width))/2); bc1.setAttribute("r",r); bc2.setAttribute("r",r); cursor.setAttribute("opacity","1"); };
   svg.addEventListener("pointermove",showCursor); svg.addEventListener("pointerenter",showCursor);
   svg.addEventListener("pointerleave",()=>cursor.setAttribute("opacity","0"));
 
@@ -225,18 +270,17 @@
   const rebuildLedger=()=>{ ledger.innerHTML=""; [...committed.children].forEach((g,i)=>chipFor(g,i+1)); };
 
   // ── Tools ──
-  document.querySelectorAll("button.tool[data-tool]").forEach(b=>{ b.onclick=()=>{ tool=b.dataset.tool;
+  document.querySelectorAll("button.tool[data-tool]").forEach(b=>{ b.onclick=()=>{ tool=b.dataset.tool; svg.classList.toggle("pan",tool==="pan");
     document.querySelectorAll("button.tool[data-tool]").forEach(x=>x.classList.remove("on")); b.classList.add("on"); }; });
   $("wiggle").onclick=()=>{ wiggle=!wiggle; $("wiggle").classList.toggle("on",wiggle); };
 
-  // ── Colour: native picker + hex + themed presets ──
+  // ── Colour ──
   const nc=$("nativeColor"), hexIn=$("hex"), paletteEl=$("palette");
   const setColor=v=>{ color=v; nc.value=v; hexIn.value=v.toUpperCase(); paletteEl.querySelectorAll(".swatch").forEach(x=>x.classList.remove("on")); };
   nc.oninput=()=>setColor(nc.value);
   hexIn.onchange=()=>{ let v=hexIn.value.trim().replace(/^#?/,""); if(/^([0-9a-f]{6})$/i.test(v)) setColor("#"+v.toLowerCase()); else if(/^([0-9a-f]{3})$/i.test(v)) setColor("#"+[...v].map(c=>c+c).join("").toLowerCase()); else hexIn.value=color.toUpperCase(); };
   const buildPalette=()=>{ paletteEl.innerHTML="<span class='lbl'>Palette</span>";
-    THEMES[themeName].colors.forEach(c=>{ const b=document.createElement("button"); b.className="swatch"; b.style.background=c; b.title=c;
-      b.onclick=()=>{ setColor(c); b.classList.add("on"); }; paletteEl.appendChild(b); }); };
+    THEMES[themeName].colors.forEach(c=>{ const b=document.createElement("button"); b.className="swatch"; b.style.background=c; b.title=c; b.onclick=()=>{ setColor(c); b.classList.add("on"); }; paletteEl.appendChild(b); }); };
 
   // ── Widths / theme ──
   const widthsEl=$("widths");
@@ -254,9 +298,9 @@
   const renderSource=()=>{ if(!drawerOpen) return; const html=committed.innerHTML.trim()||"<!-- no committed marks yet -->"; const bytes=new Blob([html]).size;
     $("svgview").innerHTML=`<span class="g">&lt;!-- ${nContrib} mark atom(s) · ${bytes} bytes on-chain · rendered natively --&gt;</span>\n`+html.replace(/</g,"&lt;").replace(/&lt;g /g,'<span class="g">&lt;g </span>'); };
 
-  // ── Ultra-HQ export ──
+  // ── Ultra-HQ export (always the FULL canvas, ignoring zoom/pan) ──
   $("hq").onclick=()=>{ const SIZE=3000; const clone=svg.cloneNode(true); clone.querySelector("#active")?.remove(); clone.querySelector("#brushCursor")?.remove();
-    clone.setAttribute("width",SIZE); clone.setAttribute("height",SIZE);
+    clone.setAttribute("viewBox","0 0 1000 1000"); clone.setAttribute("width",SIZE); clone.setAttribute("height",SIZE);
     const url=URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(clone)],{type:"image/svg+xml"})); const img=new Image();
     img.onload=()=>{ const cv=document.createElement("canvas"); cv.width=cv.height=SIZE; cv.getContext("2d").drawImage(img,0,0,SIZE,SIZE); URL.revokeObjectURL(url);
       cv.toBlob(b=>{ const a=document.createElement("a"); a.href=URL.createObjectURL(b); a.download=`dream-canvas-${SIZE}px.png`; a.click(); },"image/png"); };
@@ -266,7 +310,7 @@
     $("undo").disabled=!active.children.length; $("redo").disabled=!undone.length;
     const sealed=nContrib>=CAP; $("commit").disabled=sealed||!active.children.length; $("stSeal").textContent=sealed?" · SEALED ✔":""; if(sealed) $("commit").textContent="● Sealed"; renderSource(); };
 
-  load(); applyTheme(); setColor(color); refresh();
+  load(); applyTheme(); setColor(color); applyView(); refresh();
 })();
 </script>
 </body>
