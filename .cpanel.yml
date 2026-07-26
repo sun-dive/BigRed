@@ -23,6 +23,9 @@ deployment:
     - /bin/cp brand.nftsale.json "$DEPLOYPATH"
     - /bin/cp .htaccess "$DEPLOYPATH"
     - /bin/cp -R brand "$DEPLOYPATH"
+    # create/ = the casual front-door app (create.nft.sale subdomain: Wallet · Draw · Messages). Static, multi-page —
+    # its subfolders (draw/ wallet/ messages/) MUST ship, so copy the whole tree recursively.
+    - /bin/cp -R create "$DEPLOYPATH"
     # listings.json + covers/ are owned by the server-side curation cron, which writes them straight into the
     # web root on a schedule. Seed them on a FRESH deploy only — never overwrite the cron's live catalog.
     - '[ -f "$DEPLOYPATH/listings.json" ] || /bin/cp listings.json "$DEPLOYPATH"'
