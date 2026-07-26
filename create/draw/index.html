@@ -258,11 +258,12 @@
     fGrow(g,x2,y2,ang+spread+fp.bias+(Math.random()-.5)*fp.ang,nlen,nd,uw,fp);
     if(Math.random()<fp.third) fGrow(g,x2,y2,ang+fp.bias+(Math.random()-.5)*fp.ang*1.5,nlen*0.88,nd,uw,fp); };
   const fPlace=p=>{ if(!fbase||!current) return; const dx=p.x-fbase.x, dy=p.y-fbase.y; let len=Math.hypot(dx,dy);
-    const ang=len<3?-90:Math.atan2(dy,dx)*180/Math.PI; len=Math.max(26,Math.min(420,len));
+    if(fkind==="Mandelbrot" && len<10){ current.setAttribute("transform","translate(500 500) scale(1000)"); return; } // tap = fill the whole frame
+    const ang=len<3?-90:Math.atan2(dy,dx)*180/Math.PI; len=Math.max(26,Math.min(1420,len));
     current.setAttribute("transform",`translate(${fbase.x} ${fbase.y}) rotate(${ang.toFixed(1)}) scale(${len.toFixed(1)})`); };
   // ── Classic Mandelbrot (escape-time; a RASTER fractal — computed on a canvas, placed as an <image> atom) ──
   const hsl2rgb=(h,s,l)=>{ h=((h%360)+360)%360/360; const a=s*Math.min(l,1-l), f=n=>{ const k=(n+h*12)%12; return Math.round(255*(l-a*Math.max(-1,Math.min(k-3,9-k,1)))); }; return [f(0),f(8),f(4)]; };
-  const mandelImage=()=>{ const S=224, cv=document.createElement("canvas"); cv.width=cv.height=S; const cc=cv.getContext("2d"), img=cc.createImageData(S,S), d=img.data, X0=-2.3,X1=0.9,Y0=-1.6,Y1=1.6, MI=110;
+  const mandelImage=()=>{ const S=340, cv=document.createElement("canvas"); cv.width=cv.height=S; const cc=cv.getContext("2d"), img=cc.createImageData(S,S), d=img.data, X0=-2.3,X1=0.9,Y0=-1.6,Y1=1.6, MI=170;
     for(let py=0;py<S;py++){ const cy=Y0+(py/S)*(Y1-Y0); for(let px=0;px<S;px++){ const cxr=X0+(px/S)*(X1-X0); let zx=0,zy=0,i=0;
       while(i<MI && zx*zx+zy*zy<4){ const t=zx*zx-zy*zy+cxr; zy=2*zx*zy+cy; zx=t; i++; } const o=(py*S+px)*4;
       if(i>=MI){ d[o]=d[o+1]=d[o+2]=6; d[o+3]=255; } else { const t=i/MI, c=hsl2rgb(205+t*520,.78,.12+t*.56); d[o]=c[0]; d[o+1]=c[1]; d[o+2]=c[2]; d[o+3]=255; } } }
