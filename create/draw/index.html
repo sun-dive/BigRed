@@ -408,7 +408,7 @@
   const updWig=()=>{ WIG.amp=+wAmt.value; WIG.calc=wSmooth.checked?"linear":"discrete"; WIG.dur=(0.9-(+wSpd.value)*0.075).toFixed(2)+"s"; $("wAmtV").textContent=wAmt.value; $("wSpdV").textContent=wSpd.value; };
   wAmt.oninput=updWig; wSpd.oninput=updWig; wSmooth.onchange=updWig; updWig();
   const tSpd=$("tSpd"); // twinkle tempo (independent of wiggle speed): faster slider → shorter base duration
-  const updTwk=()=>{ TWK.base=+(3.2-(+tSpd.value)*0.28).toFixed(2); $("tSpdV").textContent=tSpd.value; };
+  const updTwk=()=>{ TWK.base=Math.max(0.12,+(3.05-(+tSpd.value)*0.29).toFixed(2)); $("tSpdV").textContent=tSpd.value; }; // 5≈1.6s moderate, 10≈0.15s rapid
   tSpd.oninput=updTwk; updTwk();
   $("twiggle").onclick=e=>{ e.stopPropagation(); tpanel.hidden=!tpanel.hidden; };
   document.addEventListener("pointerdown",e=>{ if(!tpanel.hidden && !tpanel.contains(e.target) && e.target!==$("twiggle")) tpanel.hidden=true; });
