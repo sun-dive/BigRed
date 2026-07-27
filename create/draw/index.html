@@ -119,6 +119,8 @@
         <label>Speed <span class="v" id="wSpdV">5</span></label>
         <input type="range" id="wSpd" min="1" max="10" value="5">
         <label class="chk"><input type="checkbox" id="wSmooth"> Smooth wobble <span class="v">(vs jumpy boil)</span></label>
+        <label style="margin-top:10px;border-top:1px solid var(--line);padding-top:8px">✨ Twinkle speed <span class="v" id="tSpdV">5</span></label>
+        <input type="range" id="tSpd" min="1" max="10" value="5">
       </div>
     </div>
     <div class="sep"></div>
@@ -214,6 +216,7 @@
   let tool="pen", color="#8b7cf6", width=6, themeName="Aurora", wiggle=false, twinkle=false;
   let drawing=false, current=null, points=[], undone=[], nContrib=0;
   const WIG={amp:7, dur:"0.52s", calc:"discrete"};      // twiggle-able wiggle params
+  const TWK={base:1.9};                                  // twinkle tempo centre (s); each mark still varies ±30% around it
   let zoom=1, panX=0, panY=0, panning=false, ps=null;   // zoom / pan
   const bgColor=()=>THEMES[themeName].bg;
 
@@ -395,7 +398,7 @@
 
   // ── Twinkle: an opacity shimmer with random phase/speed per mark, so a field of stars pulses out of sync.
   //    Targets opacity → composes with wiggle (position/shape) on the same element. Rides in the exported atom. ──
-  const applyTwinkle=el=>{ const dur=(1.1+Math.random()*1.6).toFixed(2), lo=(0.2+Math.random()*0.3).toFixed(2), off=(-Math.random()*(1.1+Math.random()*1.6)).toFixed(2);
+  const applyTwinkle=el=>{ const dur=(TWK.base*(0.7+Math.random()*0.6)).toFixed(2), lo=(0.2+Math.random()*0.3).toFixed(2), off=(-Math.random()*TWK.base*1.3).toFixed(2);
     const an=document.createElementNS(SVGNS,"animate"); an.setAttribute("attributeName","opacity"); an.setAttribute("values",`1;${lo};1`);
     an.setAttribute("dur",dur+"s"); an.setAttribute("begin",off+"s"); an.setAttribute("repeatCount","indefinite");
     an.setAttribute("calcMode","spline"); an.setAttribute("keyTimes","0;0.5;1"); an.setAttribute("keySplines","0.4 0 0.6 1;0.4 0 0.6 1"); el.appendChild(an); };
@@ -404,6 +407,9 @@
   const wAmt=$("wAmt"), wSpd=$("wSpd"), wSmooth=$("wSmooth"), tpanel=$("tpanel");
   const updWig=()=>{ WIG.amp=+wAmt.value; WIG.calc=wSmooth.checked?"linear":"discrete"; WIG.dur=(0.9-(+wSpd.value)*0.075).toFixed(2)+"s"; $("wAmtV").textContent=wAmt.value; $("wSpdV").textContent=wSpd.value; };
   wAmt.oninput=updWig; wSpd.oninput=updWig; wSmooth.onchange=updWig; updWig();
+  const tSpd=$("tSpd"); // twinkle tempo (independent of wiggle speed): faster slider → shorter base duration
+  const updTwk=()=>{ TWK.base=+(3.2-(+tSpd.value)*0.28).toFixed(2); $("tSpdV").textContent=tSpd.value; };
+  tSpd.oninput=updTwk; updTwk();
   $("twiggle").onclick=e=>{ e.stopPropagation(); tpanel.hidden=!tpanel.hidden; };
   document.addEventListener("pointerdown",e=>{ if(!tpanel.hidden && !tpanel.contains(e.target) && e.target!==$("twiggle")) tpanel.hidden=true; });
 
