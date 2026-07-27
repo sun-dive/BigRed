@@ -328,26 +328,25 @@
   $("zIn").onclick=()=>zoomBy(1.4); $("zOut").onclick=()=>zoomBy(1/1.4); $("zFit").onclick=()=>{ zoom=1; panX=0; panY=0; applyView(); };
   svg.addEventListener("wheel",e=>{ e.preventDefault(); const p=toSvg(e); zoomBy(e.deltaY<0?1.15:1/1.15,p.x,p.y); },{passive:false});
 
-  // ── Stamp (wiggle = rotational boil around its own centre) ──
-  const placeStamp=p=>{ const s=Math.max(6,width*2.6), shp=$("stampShape").value;
+  // ── Stamp: click = base size, click-DRAG = grow to the drag radius. (wiggle = rotational boil around centre) ──
+  const makeStamp=p=>{ const base=Math.max(6,width*2.6), shp=$("stampShape").value;
     let el; if(shp==="●"){ el=document.createElementNS(SVGNS,"circle"); el.setAttribute("r",1); } else { el=document.createElementNS(SVGNS,"path"); el.setAttribute("d",STAMP[shp]||STAR); }
     el.setAttribute("fill",color);
-    const g=document.createElementNS(SVGNS,"g"); g.setAttribute("transform",`translate(${p.x} ${p.y}) scale(${s})`);
+    const g=document.createElementNS(SVGNS,"g"); g.setAttribute("transform",`translate(${p.x} ${p.y}) scale(${base})`);
     if(wiggle){ const inner=document.createElementNS(SVGNS,"g"); inner.appendChild(el);
       const vals=Array.from({length:3},()=>((Math.random()*2-1)*WIG.amp).toFixed(1)).join(";");
       const an=document.createElementNS(SVGNS,"animateTransform"); an.setAttribute("attributeName","transform"); an.setAttribute("type","rotate");
       an.setAttribute("values",vals); an.setAttribute("dur",WIG.dur); an.setAttribute("repeatCount","indefinite"); an.setAttribute("calcMode",WIG.calc);
       inner.appendChild(an); g.appendChild(inner); }
     else g.appendChild(el);
-    if(twinkle) applyTwinkle(g);
-    setRec(g,{k:"stamp",shp,x:+p.x.toFixed(1),y:+p.y.toFixed(1),s:+s.toFixed(2),col:color,wig:wiggle?1:0,twk:twinkle?1:0});
-    active.appendChild(g); undone=[]; save(); refresh(); };
+    g._o=p; g._base=base; g._s=base; g._shp=shp; g._x=p.x; g._y=p.y; g._col=color; // resize on drag; twinkle + rec applied on end
+    active.appendChild(g); return g; };
 
   // ── Drawing / pan pointer handlers ──
   const start=e=>{ e.preventDefault();
     if(tool==="pan"){ panning=true; const r=svg.getBoundingClientRect(); ps={x:e.clientX,y:e.clientY,px:panX,py:panY,scale:(1000/zoom)/r.width}; svg.setPointerCapture(e.pointerId); return; }
     const p=toSvg(e);
-    if(tool==="stamp"){ placeStamp(p); return; }
+    if(tool==="stamp"){ svg.setPointerCapture(e.pointerId); drawing=true; undone=[]; points=[p]; current=makeStamp(p); refresh(); return; }
     svg.setPointerCapture(e.pointerId); drawing=true; undone=[]; points=[p];
     if(tool==="spray"){ current=document.createElementNS(SVGNS,"g"); const seed=(Math.random()*4294967296)>>>0; current._seed=seed; sprayRng=mulberry32(seed); if(wiggle) current.setAttribute("filter","url(#sprayBoil)"); active.appendChild(current); sprayAt(p); refresh(); return; }
     if(tool==="fractal"){ fbase=p; fcount=0; current=document.createElementNS(SVGNS,"g");
@@ -363,6 +362,7 @@
     if(panning){ panX=ps.px-(e.clientX-ps.x)*ps.scale; panY=ps.py-(e.clientY-ps.y)*ps.scale; applyView(); return; }
     if(!drawing) return; const p=toSvg(e);
     if(tool==="spray"){ points.push(p); sprayAt(p); return; }
+    if(tool==="stamp"){ const o=current._o, d=Math.hypot(p.x-o.x,p.y-o.y), s=Math.max(current._base,d); current._s=s; current.setAttribute("transform",`translate(${o.x} ${o.y}) scale(${s.toFixed(2)})`); return; }
     if(tool==="fractal"){ fPlace(p); return; }
     if(FREEHAND.has(tool)){ const l=points[points.length-1]; if(Math.hypot(p.x-l.x,p.y-l.y)<2) return; points.push(p); current.setAttribute("d",smooth(points)); }
     else if(tool==="line"){ current.setAttribute("x2",p.x); current.setAttribute("y2",p.y); }
@@ -376,6 +376,7 @@
     else if(tool==="line") r={k:"line",col:color,w:width,x1:+(+el.getAttribute("x1")).toFixed(1),y1:+(+el.getAttribute("y1")).toFixed(1),x2:+(+el.getAttribute("x2")).toFixed(1),y2:+(+el.getAttribute("y2")).toFixed(1)};
     else if(tool==="rect") r={k:"rect",col:color,w:width,x:+(+el.getAttribute("x")||0).toFixed(1),y:+(+el.getAttribute("y")||0).toFixed(1),width:+(+el.getAttribute("width")||0).toFixed(1),height:+(+el.getAttribute("height")||0).toFixed(1)};
     else if(tool==="ellipse") r={k:"ellipse",col:color,w:width,cx:+(+el.getAttribute("cx")||0).toFixed(1),cy:+(+el.getAttribute("cy")||0).toFixed(1),rx:+(+el.getAttribute("rx")||0).toFixed(1),ry:+(+el.getAttribute("ry")||0).toFixed(1)};
+    else if(tool==="stamp") r={k:"stamp",shp:el._shp,x:+el._x.toFixed(1),y:+el._y.toFixed(1),s:+el._s.toFixed(2),col:el._col};
     else return;
     if(el.getAttribute("filter")||(wiggle&&tool!=="eraser")) r.wig=1;
     if(twinkle&&tool!=="eraser") r.twk=1;
