@@ -1,0 +1,509 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Card maker · nft.gift</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='84'>🎁</text></svg>">
+<style>
+  :root{--bg:#0d1117;--panel:#161b22;--panel2:#1f2530;--line:#2b303b;--ink:#e7e9ee;--dim:#9aa1af;--accent:#8b7cf6;--accent2:#5eead4;--font:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--radius:8px}
+  *{box-sizing:border-box} html,body{height:100%}
+  body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 var(--font);display:flex;flex-direction:column;overflow:hidden;touch-action:none}
+  .appnav{display:flex;align-items:center;gap:14px;padding:9px 16px;background:var(--panel);border-bottom:1px solid var(--line)}
+  .appnav .brand{font-weight:750;color:var(--ink);text-decoration:none;font-size:15px} .appnav .brand b{color:var(--accent)}
+  .appnav .tabs{display:flex;gap:6px;margin-left:auto}
+  .appnav .tab{padding:6px 12px;border-radius:8px;color:var(--dim);text-decoration:none;font-size:13px;border:1px solid transparent}
+  .appnav .tab:hover{color:var(--ink);background:var(--panel2)}
+  .appnav .tab.on{color:#fff;background:color-mix(in srgb,var(--accent) 22%,var(--panel2));border-color:var(--accent)}
+  .toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:8px 12px;padding:9px 16px;border-bottom:1px solid var(--line);background:var(--panel)}
+  .group{display:flex;align-items:center;gap:6px}
+  .group .lbl{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--dim);margin-right:2px}
+  .sep{width:1px;align-self:stretch;background:var(--line);margin:2px}
+  .stat{font:12px/1.4 ui-monospace,Menlo,monospace;color:var(--dim);margin-left:auto}
+  .stat b{color:var(--ink)} .stat .seal{color:var(--accent2)} .stat .price b{color:var(--accent2)}
+  button.tool,select,button.act{background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:var(--radius);padding:7px 9px;font-size:14px;cursor:pointer;line-height:1}
+  button.tool{min-width:36px}
+  button.tool.on{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 22%,var(--panel2));color:#fff}
+  button.act{font-weight:600;font-size:13px} button.act.primary{background:var(--accent);border-color:var(--accent);color:#0b0b12}
+  button.act.pay{background:var(--accent2);border-color:var(--accent2);color:#07120f}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  .swatch{width:24px;height:24px;border-radius:50%;border:2px solid rgba(255,255,255,.15);cursor:pointer;padding:0}
+  .swatch.on{border-color:#fff;box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--accent)}
+  .width{width:34px;height:34px;display:grid;place-items:center;border-radius:var(--radius);background:var(--panel2);border:1px solid var(--line);cursor:pointer}
+  .width.on{border-color:var(--accent)} .width i{display:block;background:var(--ink);border-radius:99px}
+  input[type=color]{-webkit-appearance:none;appearance:none;width:32px;height:32px;border:1px solid var(--line);border-radius:8px;padding:0;background:none;cursor:pointer}
+  input[type=color]::-webkit-color-swatch-wrapper{padding:2px} input[type=color]::-webkit-color-swatch{border:none;border-radius:6px} input[type=color]::-moz-color-swatch{border:none;border-radius:6px}
+  #hex{width:92px;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:7px 8px;font:13px ui-monospace,Menlo,monospace;text-transform:uppercase}
+  .tpanel{position:absolute;top:calc(100% + 8px);left:0;z-index:30;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:11px;box-shadow:0 14px 34px rgba(0,0,0,.55);min-width:216px}
+  .tpanel[hidden]{display:none}
+  .tpanel label{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--dim)}
+  .tpanel label .v{margin-left:auto;color:var(--ink);font:12px ui-monospace,Menlo,monospace}
+  .tpanel input[type=range]{flex:1;accent-color:var(--accent)} .tpanel .chk{gap:7px}
+  .stage{flex:1;display:flex;align-items:center;justify-content:center;padding:18px;min-height:0}
+  .frame{position:relative;aspect-ratio:3/4;height:min(80vh,120vw);border-radius:14px;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,.5),0 0 0 1px var(--line)}
+  svg{display:block;width:100%;height:100%;cursor:crosshair;touch-action:none}
+  svg.pan{cursor:grab}
+  .hint{position:absolute;left:12px;bottom:10px;font-size:11px;color:rgba(255,255,255,.55);background:rgba(0,0,0,.35);padding:3px 8px;border-radius:6px;pointer-events:none;backdrop-filter:blur(2px)}
+  .drawer{max-height:0;overflow:hidden;transition:max-height .2s ease;background:var(--panel);border-top:1px solid var(--line)}
+  .drawer.open{max-height:38vh;overflow:auto}
+  .drawer pre{margin:0;padding:14px 16px;font:12px/1.5 ui-monospace,Menlo,monospace;color:var(--dim);white-space:pre-wrap;word-break:break-all}
+  .drawer pre .g{color:var(--accent2)}
+  footer{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 16px;border-top:1px solid var(--line);background:var(--panel)}
+  .ledger{display:flex;align-items:center;gap:6px;flex:1;min-width:140px;overflow:auto;font:12px ui-monospace,Menlo,monospace}
+  .chip{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:99px;background:var(--panel2);border:1px solid var(--line);color:var(--dim);white-space:nowrap}
+  .chip i{width:9px;height:9px;border-radius:50%} .spacer{flex:1}
+  @media (max-width:640px){.appnav .brand span{display:none}}
+  /* ── App SKINS (the whole-tool vibe; separate from the canvas art themes) ── */
+  body[data-skin="crayon"]{--bg:#efe4cd;--panel:#fff7e6;--panel2:#fffdf8;--line:#e0d2b2;--ink:#2b2118;--dim:#8a7a5f;--accent:#ff5a5f;--accent2:#f0a316;--font:"Trebuchet MS","Segoe UI",system-ui,sans-serif;--radius:13px;background-image:radial-gradient(#e2d5b8 .9px,transparent .9px);background-size:20px 20px}
+  body[data-skin="crayon"] button.tool,body[data-skin="crayon"] button.act,body[data-skin="crayon"] select,body[data-skin="crayon"] .width{border-width:2px;font-weight:700}
+  body[data-skin="crayon"] button.tool.on{transform:rotate(-2.5deg)}
+  body[data-skin="sketch"]{--bg:#e7e1d2;--panel:#fbf8f0;--panel2:#fbf8f0;--line:#cabfa6;--ink:#26241f;--dim:#8b8371;--accent:#e5484d;--accent2:#2d5bd7;--font:"Trebuchet MS","Segoe UI",system-ui,sans-serif;--radius:9px}
+  body[data-skin="sketch"] button.tool,body[data-skin="sketch"] button.act,body[data-skin="sketch"] select{border-width:1.5px}
+  body[data-skin="toy"]{--bg:#ffeaf3;--panel:#ff6ea9;--panel2:#f6f1ff;--line:#f0c4da;--ink:#38264d;--dim:#6b4f82;--accent:#22c3a6;--accent2:#ff9f43;--font:"Trebuchet MS","Segoe UI",system-ui,sans-serif;--radius:18px}
+  body[data-skin="toy"] button.tool,body[data-skin="toy"] button.act{border-width:2px;box-shadow:0 3px 0 rgba(56,38,77,.16)}
+  body[data-skin="toy"] .appnav .brand{color:#fff} body[data-skin="toy"] .appnav .tab{color:#ffe3ef}
+  body[data-skin="toy"] button.tool.on{transform:rotate(-2deg)}
+  body[data-skin="crayon"] .tool.on,body[data-skin="crayon"] .tab.on,body[data-skin="sketch"] .tool.on,body[data-skin="sketch"] .tab.on,body[data-skin="toy"] .tool.on,body[data-skin="toy"] .tab.on{color:var(--ink)}
+</style>
+</head>
+<body>
+  <nav class="appnav">
+    <a class="brand" href="./"><b>🎁</b> nft<span>.gift</span></a>
+    <div class="tabs" id="panelTabs"><!-- Front / Inside / Back panel tabs (Phase 1b) --></div>
+  </nav>
+
+  <div class="toolbar">
+    <div class="group"><span class="lbl">Brush</span>
+      <button class="tool on" data-tool="pen"         title="Pen — smooth solid ink">✒️</button>
+      <button class="tool"    data-tool="pencil"      title="Pencil — thin & crisp">✏️</button>
+      <button class="tool"    data-tool="shade"       title="Shading — soft, builds up">🖌️</button>
+      <button class="tool"    data-tool="highlighter" title="Highlighter — wide, see-through">🟨</button>
+      <button class="tool"    data-tool="spray"       title="Spray paint — speckled airbrush">💨</button>
+      <button class="tool"    data-tool="fractal"     title="Fractal brush — draw a stroke, a plant grows! (drag to aim & size)">🌿</button>
+      <button class="tool"    data-tool="eraser"      title="Eraser — paints the background back">🧽</button>
+    </div>
+    <div class="sep"></div>
+    <div class="group"><span class="lbl">Plant</span>
+      <select id="fracKind" title="Fractal species (for the 🌿 brush)">
+        <option value="Fern">🌿 Fern</option><option value="Tree">🌳 Tree</option><option value="Vine">🌀 Vine</option>
+        <option value="Coral">🪸 Coral</option><option value="Lightning">⚡ Bolt</option><option value="Bush">🌾 Bush</option>
+        <option value="Mandelbrot">◉ Mandelbrot</option>
+      </select>
+      <select id="fracGrow" title="Time-lapse growth (for the 🌿 brush)">
+        <option value="off">Grow: off</option><option value="once">Grow: once</option><option value="loop">Grow: loop ∞</option>
+      </select>
+    </div>
+    <div class="sep"></div>
+    <div class="group"><span class="lbl">Stamp</span>
+      <button class="tool" data-tool="stamp" title="Stamp — click to place a shape">⭐</button>
+      <select id="stampShape" title="Stamp shape"><option>★</option><option>●</option><option>♥</option><option>✦</option></select>
+    </div>
+    <div class="sep"></div>
+    <div class="group"><span class="lbl">Shape</span>
+      <button class="tool" data-tool="line" title="Line">╱</button>
+      <button class="tool" data-tool="rect" title="Rectangle">▭</button>
+      <button class="tool" data-tool="ellipse" title="Ellipse">◯</button>
+    </div>
+    <div class="sep"></div>
+    <div class="group" style="position:relative">
+      <button class="tool" id="wiggle" title="Wiggle — make strokes & stamps come alive" style="min-width:auto;padding:7px 9px">🌀</button>
+      <button class="tool" id="twinkle" title="Twinkle — opacity shimmer, out-of-sync per mark (stacks with wiggle)" style="min-width:auto;padding:7px 9px">✨</button>
+      <button class="tool" id="twiggle" title="Wiggle settings (twiggle)" style="min-width:auto;padding:7px 8px">⚙</button>
+      <div class="tpanel" id="tpanel" hidden>
+        <label>Amount <span class="v" id="wAmtV">7</span></label>
+        <input type="range" id="wAmt" min="2" max="22" value="7">
+        <label>Speed <span class="v" id="wSpdV">5</span></label>
+        <input type="range" id="wSpd" min="1" max="10" value="5">
+        <label class="chk"><input type="checkbox" id="wSmooth"> Smooth wobble <span class="v">(vs jumpy boil)</span></label>
+        <label style="margin-top:10px;border-top:1px solid var(--line);padding-top:8px">✨ Twinkle speed <span class="v" id="tSpdV">5</span></label>
+        <input type="range" id="tSpd" min="1" max="10" value="5">
+      </div>
+    </div>
+    <div class="sep"></div>
+    <div class="group"><span class="lbl">View</span>
+      <button class="tool" data-tool="pan" title="Pan — drag to move the canvas">✋</button>
+      <button class="tool" id="zOut" title="Zoom out">🔍−</button>
+      <button class="tool" id="zFit" title="Reset zoom (fit)" style="min-width:auto;padding:7px 8px;font:12px ui-monospace,Menlo,monospace"><span id="zlabel">100%</span></button>
+      <button class="tool" id="zIn" title="Zoom in">🔍+</button>
+    </div>
+    <div class="sep"></div>
+    <div class="group" id="widths"><span class="lbl">Size</span></div>
+    <div class="sep"></div>
+    <div class="group"><span class="lbl">Colour</span>
+      <input type="color" id="nativeColor" value="#8b7cf6" title="Pick any colour — hue, saturation, brightness">
+      <input id="hex" type="text" spellcheck="false" maxlength="7" aria-label="Hex colour" title="Type a hex colour">
+    </div>
+    <div class="group" id="palette"></div>
+    <div class="sep"></div>
+    <div class="group">
+      <button class="tool" id="undo" title="Undo last stroke">↶</button>
+      <button class="tool" id="redo" title="Redo">↷</button>
+    </div>
+    <div class="stat">
+      <span>marks <b><span id="stN">0</span>/<span id="stCap">50</span></b><span id="stSeal" class="seal"></span></span> ·
+      <span class="price">buy §<b id="stPrice">0</b></span>
+    </div>
+  </div>
+
+  <div class="stage">
+    <div class="frame">
+      <svg id="canvas" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 750 1000">
+        <defs><filter id="mcyc"><feColorMatrix type="hueRotate" values="0"><animate attributeName="values" values="0;360" dur="10s" repeatCount="indefinite" calcMode="linear"></animate></feColorMatrix></filter><filter id="sprayBoil" x="-15%" y="-15%" width="130%" height="130%"><feTurbulence type="turbulence" baseFrequency="0.09" numOctaves="1" seed="1" result="n"><animate attributeName="seed" values="1;2;3" dur="0.5s" repeatCount="indefinite" calcMode="discrete"></animate></feTurbulence><feDisplacementMap in="SourceGraphic" in2="n" scale="4" xChannelSelector="R" yChannelSelector="G"></feDisplacementMap></filter></defs>
+        <rect id="bg" x="0" y="0" width="750" height="1000"></rect>
+        <g id="committed"></g>
+        <g id="active"></g>
+        <g id="brushCursor" pointer-events="none" opacity="0">
+          <circle id="bc1" r="3" fill="none" stroke="#000" stroke-width="1.6"></circle>
+          <circle id="bc2" r="3" fill="none" stroke="#fff" stroke-width="0.8"></circle>
+        </g>
+      </svg>
+      <div class="hint" id="hint">draw → “Add mark” to commit · scroll or 🔍 to zoom · ✋ to pan · work auto-saves</div>
+    </div>
+  </div>
+
+  <div class="drawer" id="drawer"><pre id="svgview"></pre></div>
+
+  <footer>
+    <button class="act primary" id="commit">＋ Add mark</button>
+    <button class="act" id="clearSess">Clear session</button>
+    <button class="act" id="newCanvas" title="Start a fresh canvas (clears everything)">🗑 New</button>
+    <div class="ledger" id="ledger"></div>
+    <div class="spacer"></div>
+    <select id="skin" title="App look / skin">
+      <option value="crayon">Skin: Crayon</option>
+      <option value="sketch">Skin: Sketchbook</option>
+      <option value="toy">Skin: Toy Box</option>
+      <option value="studio">Skin: Studio</option>
+    </select>
+    <select id="theme" title="Canvas colour theme"></select>
+    <button class="act" id="viewsvg">&lt;/&gt; SVG</button>
+    <button class="act" id="exportSvg" title="Export an animated SVG — the mintable, self-animating atom">⬇ SVG</button>
+    <select id="pngRes" title="PNG output resolution — small (800²) for a 1:1 cover, large for the HQ deliverable">
+      <option value="800">800² · cover</option>
+      <option value="1000">1000²</option>
+      <option value="1500">1500²</option>
+      <option value="2000">2000²</option>
+      <option value="3000">3000² · ultra-HQ</option>
+      <option value="4096">4096² · max</option>
+    </select>
+    <button class="act pay" id="pngExport" title="Export a PNG at the chosen resolution — cover or HQ deliverable">⬇ PNG</button>
+  </footer>
+
+<script>
+(() => {
+  const SVGNS="http://www.w3.org/2000/svg", $=id=>document.getElementById(id);
+  const svg=$("canvas"), committed=$("committed"), active=$("active"), bg=$("bg"), ledger=$("ledger");
+  const STORE="nftGift.card.v1", CW=750, CH=1000;   // 3:4 portrait card coordinate space
+  const CAP=50, SLOT_FEE=1, HOLDER_FEE=1;
+  const THEMES={
+    Aurora:{bg:"#0b1020",colors:["#7df9ff","#b794f6","#f472b6","#fbbf24","#34d399","#f8fafc"]},
+    Riso:{bg:"#f4efe6",colors:["#ff5470","#2d6cdf","#ffcf3f","#00a878","#1a1a1a","#8a5a44"]},
+    "Ink&Wash":{bg:"#faf8f4",colors:["#141420","#3f4756","#8a94a6","#c53030","#2f6f57","#b08d57"]},
+    Sodium:{bg:"#0a0a0a",colors:["#ff7a18","#ffd28f","#ff4d4d","#ffe9c7","#c65102","#ffffff"]},
+  };
+  const WIDTHS=[3,6,12,24];
+  const BRUSH={ pen:{mult:1,op:1,cap:"round"}, pencil:{mult:.55,op:.92,cap:"round"}, shade:{mult:2.4,op:.22,cap:"round"}, highlighter:{mult:3.4,op:.38,cap:"square",blend:"multiply"} };
+  const FREEHAND=new Set(["pen","pencil","shade","highlighter","eraser"]);
+  const STAR=(()=>{ let d=""; for(let i=0;i<10;i++){ const r=i%2?0.42:1, a=Math.PI*i/5-Math.PI/2; d+=(i?"L":"M")+(r*Math.cos(a)).toFixed(3)+" "+(r*Math.sin(a)).toFixed(3)+" "; } return d+"Z"; })();
+  const SPARK="M0 -1 L0.25 -0.25 L1 0 L0.25 0.25 L0 1 L-0.25 0.25 L-1 0 L-0.25 -0.25 Z";
+  const HEART="M0 -0.4 C0.55 -0.95 1.15 -0.1 0 0.75 C-1.15 -0.1 -0.55 -0.95 0 -0.4 Z";
+  const STAMP={ "★":STAR, "✦":SPARK, "♥":HEART };
+
+  let tool="pen", color="#8b7cf6", width=6, themeName="Aurora", wiggle=false, twinkle=false;
+  let drawing=false, current=null, points=[], undone=[], nContrib=0;
+  const WIG={amp:7, dur:"0.52s", calc:"discrete"};      // twiggle-able wiggle params
+  const TWK={base:1.9};                                  // twinkle tempo centre (s); each mark still varies ±30% around it
+  let zoom=1, panX=0, panY=0, panning=false, ps=null;   // zoom / pan
+  const bgColor=()=>THEMES[themeName].bg;
+
+  // ── Persistence ──
+  const save=()=>{ try{ localStorage.setItem(STORE, JSON.stringify({ t:themeName, n:nContrib, c:committed.innerHTML, a:active.innerHTML })); }catch(_){} };
+  const load=()=>{ try{ const s=JSON.parse(localStorage.getItem(STORE)); if(!s) return;
+    if(s.t && THEMES[s.t]) themeName=s.t; committed.innerHTML=s.c||""; active.innerHTML=s.a||""; nContrib=s.n||0; rebuildLedger(); }catch(_){} };
+
+  const toSvg=e=>{ const p=svg.createSVGPoint(); p.x=e.clientX; p.y=e.clientY; const q=p.matrixTransform(svg.getScreenCTM().inverse()); return {x:Math.round(q.x*10)/10, y:Math.round(q.y*10)/10}; };
+  const smooth=pts=>{ if(!pts.length) return ""; if(pts.length<3) return `M ${pts[0].x} ${pts[0].y}`+pts.slice(1).map(p=>` L ${p.x} ${p.y}`).join("");
+    let d=`M ${pts[0].x} ${pts[0].y}`; for(let i=1;i<pts.length-1;i++){ const mx=(pts[i].x+pts[i+1].x)/2, my=(pts[i].y+pts[i+1].y)/2; d+=` Q ${pts[i].x} ${pts[i].y} ${mx} ${my}`; }
+    const l=pts[pts.length-1]; return d+` L ${l.x} ${l.y}`; };
+  const strokeAttrs=el=>{ const er=tool==="eraser", b=BRUSH[tool]||{mult:1,op:1,cap:"round"};
+    el.setAttribute("fill","none"); el.setAttribute("stroke", er?bgColor():color); el.setAttribute("stroke-width", er?width*2:width*b.mult);
+    el.setAttribute("stroke-linecap", b.cap||"round"); el.setAttribute("stroke-linejoin","round");
+    if(!er && b.op<1) el.setAttribute("stroke-opacity",b.op); if(b.blend) el.setAttribute("style","mix-blend-mode:"+b.blend); };
+
+  // ── Structured stroke record: params ride on each mark as data-rec, consolidated into <metadata> on export.
+  //    The SVG renders anywhere; the params are for our own re-open / 3D-port / replay use (format nftsale.paint.v1). ──
+  const setRec=(el,o)=>el.setAttribute("data-rec",JSON.stringify(o));
+  const cpts=pts=>pts.map(p=>[Math.round(p.x*10)/10,Math.round(p.y*10)/10]);
+  // seeded PRNG (mulberry32): spray scatter is reproducible from a stored seed → the atom re-renders identically forever
+  const mulberry32=a=>()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};
+  let sprayRng=Math.random;
+
+  // ── Spray paint: scatter small dots within a radius each move (airbrush build-up), from a SEEDED rng ──
+  const sprayAt=p=>{ const R=Math.max(6,width*2.4), n=Math.round(5+width/3), dr=Math.max(0.8,width*0.14);
+    for(let i=0;i<n;i++){ const a=sprayRng()*6.2832, rr=Math.sqrt(sprayRng())*R, c=document.createElementNS(SVGNS,"circle");
+      c.setAttribute("cx",(p.x+Math.cos(a)*rr).toFixed(1)); c.setAttribute("cy",(p.y+Math.sin(a)*rr).toFixed(1)); c.setAttribute("r",dr.toFixed(2)); c.setAttribute("fill",color); current.appendChild(c); } };
+
+  // ── Fractal brush: recursive L-system plant · species presets + optional time-lapse growth ──
+  const FRACTALS={
+    Fern:{spread:.26,sJit:.16,ratio:.76,rJit:.05,third:.55,bias:0,ang:.12,leaf:1.5,leafOn:true,depth:5,wF:.9},
+    Tree:{spread:.48,sJit:.30,ratio:.70,rJit:.08,third:.30,bias:0,ang:.22,leaf:1.9,leafOn:true,depth:5,wF:1.2},
+    Vine:{spread:.30,sJit:.14,ratio:.80,rJit:.05,third:.12,bias:.24,ang:.10,leaf:1.2,leafOn:true,depth:6,wF:.8},
+    Coral:{spread:.42,sJit:.30,ratio:.73,rJit:.07,third:.85,bias:0,ang:.28,leaf:0,leafOn:false,depth:5,wF:1},
+    Lightning:{spread:.28,sJit:.6,ratio:.74,rJit:.08,third:.03,bias:0,ang:.55,leaf:0,leafOn:false,depth:5,wF:.65},
+    Bush:{spread:.55,sJit:.34,ratio:.67,rJit:.08,third:.7,bias:0,ang:.3,leaf:1.8,leafOn:true,depth:5,wF:1.05},
+  };
+  let fkind="Fern", fgrow="off", fbase=null, fcount=0;
+  // time-lapse: each segment/leaf animates in, staggered by its generation (trunk→tips); once=grow&hold, loop=∞
+  const fAnim=(el,attr,fromV,toV,gen,maxGen)=>{ const step=0.3, an=document.createElementNS(SVGNS,"animate"); an.setAttribute("attributeName",attr);
+    if(fgrow==="once"){ an.setAttribute("from",(+fromV).toFixed(3)); an.setAttribute("to",(+toV).toFixed(3)); an.setAttribute("begin",(gen*step).toFixed(2)+"s"); an.setAttribute("dur",step+"s"); an.setAttribute("fill","freeze"); }
+    else{ const cyc=((maxGen+1)*step)*1.8, a=(gen*step)/cyc, b=((gen+1)*step)/cyc;
+      an.setAttribute("values",`${(+fromV).toFixed(3)};${(+fromV).toFixed(3)};${(+toV).toFixed(3)};${(+toV).toFixed(3)}`);
+      an.setAttribute("keyTimes",`0;${a.toFixed(3)};${b.toFixed(3)};1`); an.setAttribute("dur",cyc.toFixed(2)+"s"); an.setAttribute("repeatCount","indefinite"); }
+    el.appendChild(an); };
+  const fSeg=(x1,y1,x2,y2,w,segLen,gen,maxGen)=>{ const l=document.createElementNS(SVGNS,"line");
+    l.setAttribute("x1",x1.toFixed(3)); l.setAttribute("y1",y1.toFixed(3)); l.setAttribute("x2",x2.toFixed(3)); l.setAttribute("y2",y2.toFixed(3));
+    l.setAttribute("stroke",color); l.setAttribute("stroke-width",w.toFixed(4)); l.setAttribute("stroke-linecap","round");
+    if(fgrow!=="off"){ const sl=segLen.toFixed(3); l.setAttribute("stroke-dasharray",sl); l.setAttribute("stroke-dashoffset",sl); fAnim(l,"stroke-dashoffset",segLen,0,gen,maxGen); }
+    return l; };
+  const fGrow=(g,x,y,ang,len,depth,uw,fp)=>{ if(++fcount>560) return; const x2=x+Math.cos(ang)*len, y2=y+Math.sin(ang)*len, gen=fp.depth-depth;
+    g.appendChild(fSeg(x,y,x2,y2, uw*fp.wF*(depth/fp.depth+0.15), len, gen, fp.depth));
+    if(depth<=1){ if(fp.leafOn){ const lf=document.createElementNS(SVGNS,"circle"); lf.setAttribute("cx",x2.toFixed(3)); lf.setAttribute("cy",y2.toFixed(3)); lf.setAttribute("r",(uw*fp.leaf).toFixed(4)); lf.setAttribute("fill",color);
+      if(fgrow!=="off"){ lf.setAttribute("opacity","0"); fAnim(lf,"opacity",0,1,gen,fp.depth); } g.appendChild(lf); } return; }
+    const spread=fp.spread+(Math.random()-.5)*fp.sJit, nlen=len*(fp.ratio+Math.random()*fp.rJit), nd=depth-1;
+    fGrow(g,x2,y2,ang-spread+fp.bias+(Math.random()-.5)*fp.ang,nlen,nd,uw,fp);
+    fGrow(g,x2,y2,ang+spread+fp.bias+(Math.random()-.5)*fp.ang,nlen,nd,uw,fp);
+    if(Math.random()<fp.third) fGrow(g,x2,y2,ang+fp.bias+(Math.random()-.5)*fp.ang*1.5,nlen*0.88,nd,uw,fp); };
+  const fPlace=p=>{ if(!fbase||!current) return; const dx=p.x-fbase.x, dy=p.y-fbase.y; let len=Math.hypot(dx,dy);
+    if(fkind==="Mandelbrot" && len<10){ current.setAttribute("transform","translate(375 500) scale(1000)"); return; } // tap = fill the whole frame
+    const ang=len<3?-90:Math.atan2(dy,dx)*180/Math.PI; len=Math.max(26,Math.min(1420,len));
+    current.setAttribute("transform",`translate(${fbase.x} ${fbase.y}) rotate(${ang.toFixed(1)}) scale(${len.toFixed(1)})`); };
+  // ── Classic Mandelbrot (escape-time; a RASTER fractal — computed on a canvas, placed as an <image> atom) ──
+  const hsl2rgb=(h,s,l)=>{ h=((h%360)+360)%360/360; const a=s*Math.min(l,1-l), f=n=>{ const k=(n+h*12)%12; return Math.round(255*(l-a*Math.max(-1,Math.min(k-3,9-k,1)))); }; return [f(0),f(8),f(4)]; };
+  const mandelImage=()=>{ const S=340, cv=document.createElement("canvas"); cv.width=cv.height=S; const cc=cv.getContext("2d"), img=cc.createImageData(S,S), d=img.data, X0=-2.3,X1=0.9,Y0=-1.6,Y1=1.6, MI=170;
+    for(let py=0;py<S;py++){ const cy=Y0+(py/S)*(Y1-Y0); for(let px=0;px<S;px++){ const cxr=X0+(px/S)*(X1-X0); let zx=0,zy=0,i=0;
+      while(i<MI && zx*zx+zy*zy<4){ const t=zx*zx-zy*zy+cxr; zy=2*zx*zy+cy; zx=t; i++; } const o=(py*S+px)*4;
+      if(i>=MI){ d[o]=d[o+1]=d[o+2]=6; d[o+3]=255; } else { const t=i/MI, c=hsl2rgb(205+t*520,.78,.12+t*.56); d[o]=c[0]; d[o+1]=c[1]; d[o+2]=c[2]; d[o+3]=255; } } }
+    cc.putImageData(img,0,0); const url=cv.toDataURL("image/webp",0.85);
+    const im=document.createElementNS(SVGNS,"image"); im.setAttribute("href",url); im.setAttributeNS("http://www.w3.org/1999/xlink","xlink:href",url);
+    im.setAttribute("x","-0.5"); im.setAttribute("y","-0.5"); im.setAttribute("width","1"); im.setAttribute("height","1"); im.setAttribute("preserveAspectRatio","none");
+    if(wiggle) im.setAttribute("filter","url(#mcyc)");   // Wiggle on → the Mandelbrot colour-cycles forever
+    return im; };
+
+  // ── Mandelbrot ZOOM loop, generated in-tool: render N frames diving into seahorse valley → one self-animating
+  //    <image> (SMIL href flipbook). A few seconds of compute (yields between frames so the UI stays alive). ──
+  async function genMandelZoom(g){
+    const hint=$("hint"), orig=hint?hint.textContent:"";
+    const N=64,S=240,CX=-0.743643887037151,CY=0.131825904205330,HALF0=1.35,MAXEXP=10.5,frames=[];
+    const cv=document.createElement("canvas"); cv.width=cv.height=S; const cc=cv.getContext("2d");
+    for(let k=0;k<N;k++){ if(hint) hint.textContent=`⏳ growing a zooming Mandelbrot… ${Math.round((k/N)*100)}%`;
+      const zexp=(k/(N-1))*MAXEXP, half=HALF0*Math.exp(-zexp), MI=Math.min(700,Math.floor(140+zexp*44)), img=cc.createImageData(S,S), d=img.data;
+      for(let py=0;py<S;py++){ const cy=CY+((py/S)-0.5)*2*half; for(let px=0;px<S;px++){ const cx=CX+((px/S)-0.5)*2*half; let zx=0,zy=0,i=0;
+        while(i<MI&&zx*zx+zy*zy<256){const t=zx*zx-zy*zy+cx;zy=2*zx*zy+cy;zx=t;i++;} const o=(py*S+px)*4;
+        if(i>=MI){d[o]=6;d[o+1]=6;d[o+2]=14;d[o+3]=255;} else{const mu=i-Math.log2(Math.log2(zx*zx+zy*zy))+4,c=hsl2rgb(mu*9+200,.8,.5);d[o]=c[0];d[o+1]=c[1];d[o+2]=c[2];d[o+3]=255;}}}
+      cc.putImageData(img,0,0); frames.push(cv.toDataURL("image/webp",0.72)); await new Promise(r=>setTimeout(r,0)); }
+    // opacity flipbook, PING-PONG (zoom in then back out) so the loop is seamless — no jump, like the WebGL version's
+    // triangle wave. Interior frames show twice per cycle (forward slot + mirror slot on the way out). T = slots/cycle.
+    const T=2*N-2;
+    frames.forEach((f,k)=>{
+      const im=document.createElementNS(SVGNS,"image"); im.setAttribute("x","-0.5"); im.setAttribute("y","-0.5"); im.setAttribute("width","1"); im.setAttribute("height","1"); im.setAttribute("preserveAspectRatio","none");
+      im.setAttributeNS("http://www.w3.org/1999/xlink","xlink:href",f); im.setAttribute("opacity", k===0?"1":"0");
+      const w = k===0?[[0,1]] : k===N-1?[[N-1,N]] : [[k,k+1],[2*N-2-k,2*N-2-k+1]];
+      const v=[],t=[]; if(w[0][0]===0){v.push("1");t.push("0");}else{v.push("0","1");t.push("0",(w[0][0]/T).toFixed(5));}
+      v.push("0"); t.push((w[0][1]/T).toFixed(5));
+      if(w[1]){ v.push("1"); t.push((w[1][0]/T).toFixed(5)); v.push("0"); t.push((w[1][1]/T).toFixed(5)); }
+      if(t[t.length-1]!=="1.00000"){ v.push("0"); t.push("1"); }
+      const an=document.createElementNS(SVGNS,"animate"); an.setAttribute("attributeName","opacity"); an.setAttribute("values",v.join(";")); an.setAttribute("keyTimes",t.join(";"));
+      an.setAttribute("dur","15s"); an.setAttribute("repeatCount","indefinite"); an.setAttribute("calcMode","discrete"); im.appendChild(an); g.appendChild(im); });
+    if(hint) hint.textContent=orig; save(); refresh(); }
+
+  // ── Zoom / pan (viewBox — toSvg's getScreenCTM handles it, so drawing coords stay correct) ──
+  const applyView=()=>{ const vw=CW/zoom, vh=CH/zoom; panX=Math.max(0,Math.min(CW-vw,panX)); panY=Math.max(0,Math.min(CH-vh,panY));
+    svg.setAttribute("viewBox",`${panX} ${panY} ${vw} ${vh}`); $("zlabel").textContent=Math.round(zoom*100)+"%"; };
+  const zoomBy=(f,cx,cy)=>{ const vw=CW/zoom, vh=CH/zoom; if(cx==null){cx=panX+vw/2;cy=panY+vh/2;} const nz=Math.max(1,Math.min(8,zoom*f)),r=zoom/nz;
+    panX=cx-(cx-panX)*r; panY=cy-(cy-panY)*r; zoom=nz; applyView(); };
+  $("zIn").onclick=()=>zoomBy(1.4); $("zOut").onclick=()=>zoomBy(1/1.4); $("zFit").onclick=()=>{ zoom=1; panX=0; panY=0; applyView(); };
+  svg.addEventListener("wheel",e=>{ e.preventDefault(); const p=toSvg(e); zoomBy(e.deltaY<0?1.15:1/1.15,p.x,p.y); },{passive:false});
+
+  // ── Stamp: click = base size, click-DRAG = grow to the drag radius. (wiggle = rotational boil around centre) ──
+  const makeStamp=p=>{ const base=Math.max(6,width*2.6), shp=$("stampShape").value;
+    let el; if(shp==="●"){ el=document.createElementNS(SVGNS,"circle"); el.setAttribute("r",1); } else { el=document.createElementNS(SVGNS,"path"); el.setAttribute("d",STAMP[shp]||STAR); }
+    el.setAttribute("fill",color);
+    const g=document.createElementNS(SVGNS,"g"); g.setAttribute("transform",`translate(${p.x} ${p.y}) scale(${base})`);
+    if(wiggle){ const inner=document.createElementNS(SVGNS,"g"); inner.appendChild(el);
+      const vals=Array.from({length:3},()=>((Math.random()*2-1)*WIG.amp).toFixed(1)).join(";");
+      const an=document.createElementNS(SVGNS,"animateTransform"); an.setAttribute("attributeName","transform"); an.setAttribute("type","rotate");
+      an.setAttribute("values",vals); an.setAttribute("dur",WIG.dur); an.setAttribute("repeatCount","indefinite"); an.setAttribute("calcMode",WIG.calc);
+      inner.appendChild(an); g.appendChild(inner); }
+    else g.appendChild(el);
+    g._o=p; g._base=base; g._s=base; g._shp=shp; g._x=p.x; g._y=p.y; g._col=color; // resize on drag; twinkle + rec applied on end
+    active.appendChild(g); return g; };
+
+  // ── Drawing / pan pointer handlers ──
+  const start=e=>{ e.preventDefault();
+    if(tool==="pan"){ panning=true; const r=svg.getBoundingClientRect(); ps={x:e.clientX,y:e.clientY,px:panX,py:panY,scale:(CW/zoom)/r.width}; svg.setPointerCapture(e.pointerId); return; }
+    const p=toSvg(e);
+    if(tool==="stamp"){ svg.setPointerCapture(e.pointerId); drawing=true; undone=[]; points=[p]; current=makeStamp(p); refresh(); return; }
+    svg.setPointerCapture(e.pointerId); drawing=true; undone=[]; points=[p];
+    if(tool==="spray"){ current=document.createElementNS(SVGNS,"g"); const seed=(Math.random()*4294967296)>>>0; current._seed=seed; sprayRng=mulberry32(seed); if(wiggle) current.setAttribute("filter","url(#sprayBoil)"); active.appendChild(current); sprayAt(p); refresh(); return; }
+    if(tool==="fractal"){ fbase=p; fcount=0; current=document.createElementNS(SVGNS,"g");
+      if(fkind==="Mandelbrot" && fgrow==="loop"){ current.setAttribute("transform","translate(375 500) scale(1000)"); active.appendChild(current); genMandelZoom(current); refresh(); return; }
+      if(fkind==="Mandelbrot"){ current.appendChild(mandelImage()); } else { const fp=FRACTALS[fkind]||FRACTALS.Fern; fGrow(current,0,0,0,1,fp.depth,width/160,fp); }
+      active.appendChild(current); fPlace(p); refresh(); return; }
+    if(FREEHAND.has(tool)){ current=document.createElementNS(SVGNS,"path"); strokeAttrs(current); current.setAttribute("d",`M ${p.x} ${p.y}`); }
+    else if(tool==="line"){ current=document.createElementNS(SVGNS,"line"); strokeAttrs(current); current.setAttribute("x1",p.x); current.setAttribute("y1",p.y); current.setAttribute("x2",p.x); current.setAttribute("y2",p.y); }
+    else if(tool==="rect"){ current=document.createElementNS(SVGNS,"rect"); strokeAttrs(current); current._o=p; }
+    else { current=document.createElementNS(SVGNS,"ellipse"); strokeAttrs(current); current._o=p; }
+    active.appendChild(current); refresh(); };
+  const move=e=>{
+    if(panning){ panX=ps.px-(e.clientX-ps.x)*ps.scale; panY=ps.py-(e.clientY-ps.y)*ps.scale; applyView(); return; }
+    if(!drawing) return; const p=toSvg(e);
+    if(tool==="spray"){ points.push(p); sprayAt(p); return; }
+    if(tool==="stamp"){ const o=current._o, d=Math.hypot(p.x-o.x,p.y-o.y), s=Math.max(current._base,d); current._s=s; current.setAttribute("transform",`translate(${o.x} ${o.y}) scale(${s.toFixed(2)})`); return; }
+    if(tool==="fractal"){ fPlace(p); return; }
+    if(FREEHAND.has(tool)){ const l=points[points.length-1]; if(Math.hypot(p.x-l.x,p.y-l.y)<2) return; points.push(p); current.setAttribute("d",smooth(points)); }
+    else if(tool==="line"){ current.setAttribute("x2",p.x); current.setAttribute("y2",p.y); }
+    else if(tool==="rect"){ const o=current._o; current.setAttribute("x",Math.min(o.x,p.x)); current.setAttribute("y",Math.min(o.y,p.y)); current.setAttribute("width",Math.abs(p.x-o.x)); current.setAttribute("height",Math.abs(p.y-o.y)); }
+    else { const o=current._o; current.setAttribute("cx",(o.x+p.x)/2); current.setAttribute("cy",(o.y+p.y)/2); current.setAttribute("rx",Math.abs(p.x-o.x)/2); current.setAttribute("ry",Math.abs(p.y-o.y)/2); } };
+  // structured params for the just-finished mark (rides as data-rec → <metadata> on export; SVG still renders standalone)
+  const recordMark=el=>{ let r;
+    if(tool==="spray") r={k:"spray",col:color,w:width,seed:el._seed,pts:cpts(points)};
+    else if(tool==="fractal") r = fkind==="Mandelbrot"?{k:"mandel",zoom:fgrow==="loop"?1:0}:{k:"fractal",kind:fkind,grow:fgrow};
+    else if(FREEHAND.has(tool)) r={k:tool,col:tool==="eraser"?null:color,w:width,pts:cpts(points)};
+    else if(tool==="line") r={k:"line",col:color,w:width,x1:+(+el.getAttribute("x1")).toFixed(1),y1:+(+el.getAttribute("y1")).toFixed(1),x2:+(+el.getAttribute("x2")).toFixed(1),y2:+(+el.getAttribute("y2")).toFixed(1)};
+    else if(tool==="rect") r={k:"rect",col:color,w:width,x:+(+el.getAttribute("x")||0).toFixed(1),y:+(+el.getAttribute("y")||0).toFixed(1),width:+(+el.getAttribute("width")||0).toFixed(1),height:+(+el.getAttribute("height")||0).toFixed(1)};
+    else if(tool==="ellipse") r={k:"ellipse",col:color,w:width,cx:+(+el.getAttribute("cx")||0).toFixed(1),cy:+(+el.getAttribute("cy")||0).toFixed(1),rx:+(+el.getAttribute("rx")||0).toFixed(1),ry:+(+el.getAttribute("ry")||0).toFixed(1)};
+    else if(tool==="stamp") r={k:"stamp",shp:el._shp,x:+el._x.toFixed(1),y:+el._y.toFixed(1),s:+el._s.toFixed(2),col:el._col};
+    else return;
+    if(el.getAttribute("filter")||(wiggle&&tool!=="eraser")) r.wig=1;
+    if(twinkle&&tool!=="eraser") r.twk=1;
+    setRec(el,r); };
+  const end=e=>{ if(panning){ panning=false; try{svg.releasePointerCapture(e.pointerId);}catch(_){} return; }
+    if(!drawing) return; drawing=false; try{svg.releasePointerCapture(e.pointerId);}catch(_){}
+    if(current&&current._o) delete current._o;
+    if(wiggle && tool!=="eraser" && current && current.tagName==="path" && points.length>1) boil(current,points);
+    if(twinkle && tool!=="eraser" && current) applyTwinkle(current);
+    if(current) recordMark(current);
+    save(); refresh(); };
+  svg.addEventListener("pointerdown",start); svg.addEventListener("pointermove",move);
+  svg.addEventListener("pointerup",end); svg.addEventListener("pointercancel",end);
+
+  // ── Wiggle boil (uses the twiggle-able WIG params) ──
+  const jitter=pts=>pts.map(p=>({x:p.x+(Math.random()-.5)*2*WIG.amp, y:p.y+(Math.random()-.5)*2*WIG.amp}));
+  const boil=(el,pts)=>{ const f=[smooth(pts),smooth(jitter(pts)),smooth(jitter(pts))]; el.setAttribute("d",f[0]);
+    const an=document.createElementNS(SVGNS,"animate"); an.setAttribute("attributeName","d"); an.setAttribute("values",f.join(";"));
+    an.setAttribute("dur",WIG.dur); an.setAttribute("repeatCount","indefinite"); an.setAttribute("calcMode",WIG.calc); el.appendChild(an); };
+
+  // ── Twinkle: an opacity shimmer with random phase/speed per mark, so a field of stars pulses out of sync.
+  //    Targets opacity → composes with wiggle (position/shape) on the same element. Rides in the exported atom. ──
+  const applyTwinkle=el=>{ const dur=(TWK.base*(0.7+Math.random()*0.6)).toFixed(2), lo=(0.2+Math.random()*0.3).toFixed(2), off=(-Math.random()*TWK.base*1.3).toFixed(2);
+    const an=document.createElementNS(SVGNS,"animate"); an.setAttribute("attributeName","opacity"); an.setAttribute("values",`1;${lo};1`);
+    an.setAttribute("dur",dur+"s"); an.setAttribute("begin",off+"s"); an.setAttribute("repeatCount","indefinite");
+    an.setAttribute("calcMode","spline"); an.setAttribute("keyTimes","0;0.5;1"); an.setAttribute("keySplines","0.4 0 0.6 1;0.4 0 0.6 1"); el.appendChild(an); };
+
+  // ── Twiggle panel ──
+  const wAmt=$("wAmt"), wSpd=$("wSpd"), wSmooth=$("wSmooth"), tpanel=$("tpanel");
+  const updWig=()=>{ WIG.amp=+wAmt.value; WIG.calc=wSmooth.checked?"linear":"discrete"; WIG.dur=(0.9-(+wSpd.value)*0.075).toFixed(2)+"s"; $("wAmtV").textContent=wAmt.value; $("wSpdV").textContent=wSpd.value; };
+  wAmt.oninput=updWig; wSpd.oninput=updWig; wSmooth.onchange=updWig; updWig();
+  const tSpd=$("tSpd"); // twinkle tempo (independent of wiggle speed): faster slider → shorter base duration
+  // geometric scale — constant RATIO per step (perceptually even, no bunching): v10≈0.1s rapid … v1≈2.8s slow
+  const updTwk=()=>{ const FAST=0.1, R=Math.pow(2.8/FAST,1/9); TWK.base=+(FAST*Math.pow(R,10-(+tSpd.value))).toFixed(3); $("tSpdV").textContent=tSpd.value; };
+  tSpd.oninput=updTwk; updTwk();
+  $("twiggle").onclick=e=>{ e.stopPropagation(); tpanel.hidden=!tpanel.hidden; };
+  document.addEventListener("pointerdown",e=>{ if(!tpanel.hidden && !tpanel.contains(e.target) && e.target!==$("twiggle")) tpanel.hidden=true; });
+
+  // ── Brush cursor ──
+  const cursor=$("brushCursor"), bc1=$("bc1"), bc2=$("bc2");
+  const showCursor=e=>{ if(tool==="pan"){ cursor.setAttribute("opacity","0"); return; } const p=toSvg(e); cursor.setAttribute("transform",`translate(${p.x} ${p.y})`);
+    const r = tool==="spray" ? Math.max(6,width*2.4) : tool==="eraser" ? width : Math.max(2,(BRUSH[tool]?width*BRUSH[tool].mult:width)/2);
+    bc1.setAttribute("r",r); bc2.setAttribute("r",r); cursor.setAttribute("opacity","1"); };
+  svg.addEventListener("pointermove",showCursor); svg.addEventListener("pointerenter",showCursor);
+  svg.addEventListener("pointerleave",()=>cursor.setAttribute("opacity","0"));
+
+  // ── Undo / redo / clear / new ──
+  $("undo").onclick=()=>{ const els=[...active.children]; if(!els.length) return; undone.push(els[els.length-1]); active.removeChild(els[els.length-1]); save(); refresh(); };
+  $("redo").onclick=()=>{ const el=undone.pop(); if(el){ active.appendChild(el); save(); refresh(); } };
+  $("clearSess").onclick=()=>{ active.innerHTML=""; undone=[]; save(); refresh(); };
+  $("newCanvas").onclick=()=>{ if(!confirm("Start a fresh canvas? This clears all marks on this device.")) return; committed.innerHTML=""; active.innerHTML=""; ledger.innerHTML=""; nContrib=0; undone=[]; save(); refresh(); };
+
+  // ── Commit ──
+  $("commit").onclick=()=>{ if(nContrib>=CAP || !active.children.length) return;
+    const g=document.createElementNS(SVGNS,"g"); g.setAttribute("class","contribution"); g.setAttribute("data-fee",SLOT_FEE); g.setAttribute("data-by","you");
+    while(active.firstChild) g.appendChild(active.firstChild); committed.appendChild(g); nContrib++; undone=[]; chipFor(g,nContrib); save(); refresh(); };
+  const chipFor=(g,i)=>{ const f=g.querySelector("[stroke],[fill]"); const c=(f&&(f.getAttribute("stroke")||f.getAttribute("fill")))||"#888";
+    const chip=document.createElement("span"); chip.className="chip"; chip.innerHTML=`<i style="background:${c}"></i>#${i} §${SLOT_FEE}`; ledger.appendChild(chip); ledger.scrollLeft=ledger.scrollWidth; };
+  const rebuildLedger=()=>{ ledger.innerHTML=""; [...committed.children].forEach((g,i)=>chipFor(g,i+1)); };
+
+  // ── Tools ──
+  document.querySelectorAll("button.tool[data-tool]").forEach(b=>{ b.onclick=()=>{ tool=b.dataset.tool; svg.classList.toggle("pan",tool==="pan");
+    document.querySelectorAll("button.tool[data-tool]").forEach(x=>x.classList.remove("on")); b.classList.add("on"); }; });
+  $("wiggle").onclick=()=>{ wiggle=!wiggle; $("wiggle").classList.toggle("on",wiggle); };
+  $("twinkle").onclick=()=>{ twinkle=!twinkle; $("twinkle").classList.toggle("on",twinkle); };
+  $("fracKind").onchange=()=>{ fkind=$("fracKind").value; }; $("fracGrow").onchange=()=>{ fgrow=$("fracGrow").value; };
+
+  // ── Colour ──
+  const nc=$("nativeColor"), hexIn=$("hex"), paletteEl=$("palette");
+  const setColor=v=>{ color=v; nc.value=v; hexIn.value=v.toUpperCase(); paletteEl.querySelectorAll(".swatch").forEach(x=>x.classList.remove("on")); };
+  nc.oninput=()=>setColor(nc.value);
+  hexIn.onchange=()=>{ let v=hexIn.value.trim().replace(/^#?/,""); if(/^([0-9a-f]{6})$/i.test(v)) setColor("#"+v.toLowerCase()); else if(/^([0-9a-f]{3})$/i.test(v)) setColor("#"+[...v].map(c=>c+c).join("").toLowerCase()); else hexIn.value=color.toUpperCase(); };
+  const buildPalette=()=>{ paletteEl.innerHTML="<span class='lbl'>Palette</span>";
+    THEMES[themeName].colors.forEach(c=>{ const b=document.createElement("button"); b.className="swatch"; b.style.background=c; b.title=c; b.onclick=()=>{ setColor(c); b.classList.add("on"); }; paletteEl.appendChild(b); }); };
+
+  // ── Widths / theme ──
+  const widthsEl=$("widths");
+  WIDTHS.forEach(w=>{ const b=document.createElement("button"); b.className="width"+(w===width?" on":""); b.title=w+"px";
+    const d=document.createElement("i"); const s=Math.max(3,Math.min(20,w)); d.style.width=s+"px"; d.style.height=s+"px"; b.appendChild(d);
+    b.onclick=()=>{ width=w; widthsEl.querySelectorAll(".width").forEach(x=>x.classList.remove("on")); b.classList.add("on"); }; widthsEl.appendChild(b); });
+  const themeSel=$("theme");
+  Object.keys(THEMES).forEach(n=>{ const o=document.createElement("option"); o.value=n; o.textContent="Theme: "+n; themeSel.appendChild(o); });
+  themeSel.onchange=()=>{ themeName=themeSel.value; applyTheme(); save(); };
+  const applyTheme=()=>{ bg.setAttribute("fill",bgColor()); themeSel.value=themeName; buildPalette(); };
+
+  // ── App skin (whole-tool vibe; separate from the canvas colour theme) ──
+  const SKINSTORE="createNftSale.skin", skinSel=$("skin");
+  const applySkin=s=>{ document.body.dataset.skin=s; skinSel.value=s; };
+  skinSel.onchange=()=>{ applySkin(skinSel.value); try{localStorage.setItem(SKINSTORE,skinSel.value);}catch(_){} };
+  let savedSkin="crayon"; try{ savedSkin=localStorage.getItem(SKINSTORE)||"crayon"; }catch(_){}
+  applySkin(savedSkin);
+
+  // ── SVG source viewer ──
+  let drawerOpen=false;
+  $("viewsvg").onclick=()=>{ drawerOpen=!drawerOpen; $("drawer").classList.toggle("open",drawerOpen); renderSource(); };
+  const renderSource=()=>{ if(!drawerOpen) return; const html=committed.innerHTML.trim()||"<!-- no committed marks yet -->"; const bytes=new Blob([html]).size;
+    $("svgview").innerHTML=`<span class="g">&lt;!-- ${nContrib} mark atom(s) · ${bytes} bytes on-chain · rendered natively --&gt;</span>\n`+html.replace(/</g,"&lt;").replace(/&lt;g /g,'<span class="g">&lt;g </span>'); };
+
+  // ── Ultra-HQ export (always the FULL canvas, ignoring zoom/pan) ──
+  const rasterPNG=(SIZE,name)=>{ const H=SIZE, W=Math.round(SIZE*CW/CH); const clone=svg.cloneNode(true); clone.querySelector("#brushCursor")?.remove(); // SIZE = height; width follows the 3:4 card ratio
+    clone.setAttribute("viewBox",`0 0 ${CW} ${CH}`); clone.setAttribute("width",W); clone.setAttribute("height",H);
+    clone.setAttributeNS("http://www.w3.org/2000/xmlns/","xmlns:xlink","http://www.w3.org/1999/xlink"); // so xlink:href image frames rasterize, not blank
+    const url=URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(clone)],{type:"image/svg+xml"})); const img=new Image();
+    img.onload=()=>{ const cv=document.createElement("canvas"); cv.width=W; cv.height=H; const cx=cv.getContext("2d"); cx.fillStyle=bgColor(); cx.fillRect(0,0,W,H); cx.drawImage(img,0,0,W,H); URL.revokeObjectURL(url);
+      cv.toBlob(b=>{ const a=document.createElement("a"); a.href=URL.createObjectURL(b); a.download=name; a.click(); },"image/png"); };
+    img.onerror=()=>{ alert("Export failed in this browser — try Chrome/Edge/Firefox."); URL.revokeObjectURL(url); }; img.src=url; };
+  $("pngExport").onclick=()=>{ const S=Math.max(64,Math.min(4096,parseInt($("pngRes").value,10)||800)); rasterPNG(S,`card-${S}px.png`); }; // chosen height; width follows 3:4
+
+  // ── Export a standalone ANIMATED SVG (vector + SMIL preserved: wiggle/grow/mandelbrot-cycle) — the mintable atom ──
+  $("exportSvg").onclick=()=>{
+    const clone=svg.cloneNode(true);                    // clone the live canvas (bg, defs, ALL art + SMIL)
+    clone.querySelector("#brushCursor")?.remove();      // drop only the cursor UI — KEEP #active so in-progress art exports too ("what you see")
+    clone.setAttribute("viewBox","0 0 750 1000"); clone.setAttribute("width","750"); clone.setAttribute("height","1000"); // full card frame, ignore zoom/pan
+    clone.setAttributeNS("http://www.w3.org/2000/xmlns/","xmlns:xlink","http://www.w3.org/1999/xlink"); // guarantee the xlink decl for image frames
+    // consolidate every mark's structured params into ONE <metadata> block (nftsale.paint.v1) for our re-open/3D/replay use,
+    // then strip the inline data-rec so the rendered SVG stays clean. Params live once; the SVG still renders anywhere.
+    const recEls=[...clone.querySelectorAll("[data-rec]")];
+    const strokes=recEls.map(el=>{ try{ return JSON.parse(el.getAttribute("data-rec")); }catch(_){ return null; } }).filter(Boolean);
+    recEls.forEach(el=>el.removeAttribute("data-rec"));
+    const md=document.createElementNS(SVGNS,"metadata"); md.setAttribute("id","nftsale-paint");
+    md.textContent=JSON.stringify({format:"nftsale.paint.v1",w:750,h:1000,bg:bgColor(),strokes});
+    clone.insertBefore(md, clone.firstChild);
+    const doc='<?xml version="1.0" encoding="UTF-8"?>\n'+new XMLSerializer().serializeToString(clone); // proper XML = valid standalone SVG
+    const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([doc],{type:"image/svg+xml"})); a.download="card.svg"; a.click(); };
+
+  const refresh=()=>{ $("stN").textContent=nContrib; $("stCap").textContent=CAP; $("stPrice").textContent=nContrib*SLOT_FEE+HOLDER_FEE;
+    $("undo").disabled=!active.children.length; $("redo").disabled=!undone.length;
+    const sealed=nContrib>=CAP; $("commit").disabled=sealed||!active.children.length; $("stSeal").textContent=sealed?" · SEALED ✔":""; if(sealed) $("commit").textContent="● Sealed"; renderSource(); };
+
+  load(); applyTheme(); setColor(color); applyView(); refresh();
+})();
+</script>
+</body>
+</html>
