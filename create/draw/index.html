@@ -149,7 +149,7 @@
   <div class="stage">
     <div class="frame">
       <svg id="canvas" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000">
-        <defs><filter id="mcyc"><feColorMatrix type="hueRotate" values="0"><animate attributeName="values" values="0;360" dur="10s" repeatCount="indefinite" calcMode="linear"></animate></feColorMatrix></filter></defs>
+        <defs><filter id="mcyc"><feColorMatrix type="hueRotate" values="0"><animate attributeName="values" values="0;360" dur="10s" repeatCount="indefinite" calcMode="linear"></animate></feColorMatrix></filter><filter id="sprayBoil" x="-15%" y="-15%" width="130%" height="130%"><feTurbulence type="turbulence" baseFrequency="0.09" numOctaves="1" seed="1" result="n"><animate attributeName="seed" values="1;2;3" dur="0.5s" repeatCount="indefinite" calcMode="discrete"></animate></feTurbulence><feDisplacementMap in="SourceGraphic" in2="n" scale="4" xChannelSelector="R" yChannelSelector="G"></feDisplacementMap></filter></defs>
         <rect id="bg" x="0" y="0" width="1000" height="1000"></rect>
         <g id="committed"></g>
         <g id="active"></g>
@@ -344,7 +344,7 @@
     const p=toSvg(e);
     if(tool==="stamp"){ placeStamp(p); return; }
     svg.setPointerCapture(e.pointerId); drawing=true; undone=[]; points=[p];
-    if(tool==="spray"){ current=document.createElementNS(SVGNS,"g"); const seed=(Math.random()*4294967296)>>>0; current._seed=seed; sprayRng=mulberry32(seed); active.appendChild(current); sprayAt(p); refresh(); return; }
+    if(tool==="spray"){ current=document.createElementNS(SVGNS,"g"); const seed=(Math.random()*4294967296)>>>0; current._seed=seed; sprayRng=mulberry32(seed); if(wiggle) current.setAttribute("filter","url(#sprayBoil)"); active.appendChild(current); sprayAt(p); refresh(); return; }
     if(tool==="fractal"){ fbase=p; fcount=0; current=document.createElementNS(SVGNS,"g");
       if(fkind==="Mandelbrot" && fgrow==="loop"){ current.setAttribute("transform","translate(500 500) scale(1000)"); active.appendChild(current); genMandelZoom(current); refresh(); return; }
       if(fkind==="Mandelbrot"){ current.appendChild(mandelImage()); } else { const fp=FRACTALS[fkind]||FRACTALS.Fern; fGrow(current,0,0,0,1,fp.depth,width/160,fp); }
@@ -365,7 +365,7 @@
     else { const o=current._o; current.setAttribute("cx",(o.x+p.x)/2); current.setAttribute("cy",(o.y+p.y)/2); current.setAttribute("rx",Math.abs(p.x-o.x)/2); current.setAttribute("ry",Math.abs(p.y-o.y)/2); } };
   // structured params for the just-finished mark (rides as data-rec → <metadata> on export; SVG still renders standalone)
   const recordMark=el=>{
-    if(tool==="spray") setRec(el,{k:"spray",col:color,w:width,seed:el._seed,pts:cpts(points)});
+    if(tool==="spray") setRec(el,{k:"spray",col:color,w:width,seed:el._seed,wig:el.getAttribute("filter")?1:0,pts:cpts(points)});
     else if(tool==="fractal") setRec(el, fkind==="Mandelbrot"?{k:"mandel",zoom:fgrow==="loop"?1:0}:{k:"fractal",kind:fkind,grow:fgrow});
     else if(FREEHAND.has(tool)) setRec(el,{k:tool,col:tool==="eraser"?null:color,w:width,pts:cpts(points)});
     else if(tool==="line") setRec(el,{k:"line",col:color,w:width,x1:+(+el.getAttribute("x1")).toFixed(1),y1:+(+el.getAttribute("y1")).toFixed(1),x2:+(+el.getAttribute("x2")).toFixed(1),y2:+(+el.getAttribute("y2")).toFixed(1)});
