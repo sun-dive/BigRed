@@ -1,3 +1,4 @@
+// Big Red — © 2026 sun-dive — Licensed under the MIT License (see LICENSE).
 // ─── Mockup compositor renderer ──────────────────────────────────────────────────────────────────
 //
 // Composites a design onto a prop per the mockup warp pipeline (see docs/MOCKUP-SPEC.md §3, §6).

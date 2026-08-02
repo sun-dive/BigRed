@@ -1,0 +1,41 @@
+Big Red (nft.sale) — NOTICE
+Copyright © 2026 sun-dive
+
+This repository contains no third-party source code and no BSV chain code — the
+application JavaScript/PHP is hand-authored and does no on-chain work (it renders
+a catalogue built separately from the blockchain). The only third-party material
+is a small set of brand ASSETS, used unmodified under their own terms and
+credited here (see also brand/CREDITS.txt). Per-file licences for our own code,
+and the full texts we author under, are in LICENSE.
+
+-------------------------------------------------------------------------------
+
+Twemoji (favicon)
+    © Twitter, Inc. and contributors. Licensed under CC-BY 4.0.
+    brand/favicon.svg is a galloping-horse glyph derived from Twemoji's "horse"
+    emoji (U+1F40E), recoloured to the brand red. https://github.com/twitter/twemoji
+
+WhatsOnChain — "powered by" badge
+    © WhatsOnChain. Trademark / brand badge, used to credit the block explorer.
+    brand/powered-by-whatsonchain-white.svg
+
+BananaBlocks — logo
+    © BananaBlocks. Trademark / brand logo, used as a credit badge.
+    brand/bananablocks-logo.png
+
+-------------------------------------------------------------------------------
+
+Provenance
+    BigRed-codebase.tar.gz
+    SHA-256  3f8ae191ca4b0e4fdbeaeaa89948f7495e2a06b5636d1366121e8b2587ca4eda
+
+    Timestamped on the BSV blockchain by a two-transaction genesis mint —
+    All Rights Reserved, unencrypted, authored by sun-dive:
+      TX1  5b3390e3369d50a788e1e47d57471fedb11a18c218476e674c4195ff6ca9fa46
+      TX2  72e6301d598967d5cb9884a7d80cca738b2d7adde9a1151014865e563890e0e1
+
+    The archive excludes reproducible heavy assets (catalogue cover images,
+    social banners, generated fractal art). Anyone can hash the archive pulled
+    from chain and match the SHA-256 above. (The on-chain copy of this NOTICE
+    predates the mint, so it carries no txid — the authoritative record is this
+    repository plus the transactions above.)

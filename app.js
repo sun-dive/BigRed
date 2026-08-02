@@ -1,3 +1,4 @@
+// Big Red — © 2026 sun-dive — Licensed under the Business Source License 1.1 (see LICENSE).
 /*
  * SMART NFT Listings — Option A catalog renderer.
  *

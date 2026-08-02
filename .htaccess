@@ -1,3 +1,4 @@
+# Big Red — © 2026 sun-dive — Licensed under the Business Source License 1.1 (see LICENSE).
 # Serve the host-aware PHP entry first (it branches the <head> per domain: nft.sale vs its NFTsale.com mirror).
 DirectoryIndex index.php index.html
 

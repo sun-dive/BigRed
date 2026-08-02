@@ -1,4 +1,5 @@
 ---
+# Big Red — © 2026 sun-dive — Licensed under the Business Source License 1.1 (see LICENSE).
 # cPanel Git™ Version Control deployment for Big Red (nft.sale) — mirrors the smartnfts.com setup.
 #
 # In cPanel → Git Version Control: clone this repo (branch main), then "Update from Remote" +

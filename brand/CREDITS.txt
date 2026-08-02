@@ -15,3 +15,7 @@ og-banner.jpg / og-banner-nftsale.jpg
 
 powered-by-whatsonchain-white.svg
   WhatsOnChain "powered by" badge © WhatsOnChain — used to credit the block explorer.
+
+bananablocks-logo.png
+  BananaBlocks logo © BananaBlocks — used as a "powered by" credit badge for the
+  block explorer / broadcast service.

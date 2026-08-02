@@ -1,4 +1,5 @@
 <?php
+// Big Red — © 2026 sun-dive — Licensed under the Business Source License 1.1 (see LICENSE).
   // Host-aware <head>: one deployment serves nft.sale and its mirror NFTsale.com. Crawlers don't run JS, so the
   // per-domain title + social image are branched here (the visible page is themed client-side by app.js from
   // brand.json / brand.nftsale.json). Everything below <body> is identical for both hosts.
